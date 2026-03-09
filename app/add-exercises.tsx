@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useExerciseStore } from '../store/exerciseStore';
 import { useWorkoutStore } from '../store/workoutStore';
+import { useRoutineStore } from '../store/routineStore';
 import { MuscleGroup, Equipment, Category, MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, CATEGORY_LABELS } from '../data/exercises';
 
 const ALL_MUSCLES: MuscleGroup[] = ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'];
@@ -42,7 +43,7 @@ export default function AddExercisesScreen() {
 
     const handleAdd = () => {
         if (params.mode === 'routine') {
-            // Return selected IDs via global state or params — for now just go back
+            useRoutineStore.getState().addToDraft(selectedIds);
             router.back();
             return;
         }
