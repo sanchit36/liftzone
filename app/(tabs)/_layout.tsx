@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { StyleSheet, View, Platform } from 'react-native';
-import { Colors, FontSize, FontWeight } from '../../constants/theme';
+import { StyleSheet, Platform } from 'react-native';
+import { Colors } from '../../constants/theme';
 
 export default function TabLayout() {
     return (
@@ -21,15 +21,6 @@ export default function TabLayout() {
                     title: 'Home',
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialIcons name="home" size={26} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="workout"
-                options={{
-                    title: 'Workout',
-                    tabBarIcon: ({ color, focused }) => (
-                        <MaterialIcons name="fitness-center" size={26} color={color} />
                     ),
                 }}
             />

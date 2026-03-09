@@ -9,20 +9,8 @@ import { useRoutineStore } from '../../store/routineStore';
 
 export default function HomeScreen() {
     const router = useRouter();
-    const { streakDays, workoutHistory } = useWorkoutStore();
+    const { streakDays } = useWorkoutStore();
     const { routines } = useRoutineStore();
-
-    const timeAgo = (timestamp: number) => {
-        const diff = Date.now() - timestamp;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        if (days === 0) return 'Today';
-        if (days === 1) return 'Yesterday';
-        return `${days} days ago`;
-    };
-
-    const durationMin = (start: number, end: number) => {
-        return `${Math.round((end - start) / 60000)} min`;
-    };
 
     const handleStartWorkout = () => {
         router.push('/workout-session');
@@ -86,14 +74,9 @@ export default function HomeScreen() {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>Your Routines</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.viewAll}>View All</Text>
-                        </TouchableOpacity>
                     </View>
                     <FlatList
-                        horizontal
                         data={routines}
-                        showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.routineList}
                         keyExtractor={(item) => item.id}
                         renderItem={({ item }) => (
@@ -101,34 +84,13 @@ export default function HomeScreen() {
                                 <View style={styles.routineIconContainer}>
                                     <MaterialIcons name={getRoutineIcon(item.icon)} size={22} color={Colors.primary} />
                                 </View>
-                                <Text style={styles.routineName}>{item.name}</Text>
-                                <Text style={styles.routineCount}>{item.exerciseIds.length} Exercises</Text>
+                                <View style={styles.routineTextContainer}>
+                                    <Text style={styles.routineName}>{item.name}</Text>
+                                    <Text style={styles.routineCount}>{item.exerciseIds.length} Exercises</Text>
+                                </View>
                             </TouchableOpacity>
                         )}
                     />
-                </View>
-
-                {/* Recent Workouts */}
-                <View style={[styles.section, { marginBottom: 40 }]}>
-                    <Text style={styles.sectionTitle}>Recent Workouts</Text>
-                    <View style={styles.workoutList}>
-                        {workoutHistory.slice(0, 5).map((workout) => (
-                            <TouchableOpacity key={workout.id} style={styles.workoutItem} activeOpacity={0.7}>
-                                <View style={styles.workoutItemLeft}>
-                                    <View style={styles.workoutIcon}>
-                                        <MaterialIcons name="history" size={22} color={Colors.light.textTertiary} />
-                                    </View>
-                                    <View>
-                                        <Text style={styles.workoutName}>{workout.routineName}</Text>
-                                        <Text style={styles.workoutMeta}>
-                                            {timeAgo(workout.startedAt)} • {durationMin(workout.startedAt, workout.endedAt)}
-                                        </Text>
-                                    </View>
-                                </View>
-                                <MaterialIcons name="chevron-right" size={24} color={Colors.light.textTertiary} />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -200,6 +162,9 @@ const styles = StyleSheet.create({
     viewAll: { fontSize: FontSize.sm, fontFamily: 'Lexend_600SemiBold', color: Colors.primary },
     routineList: { gap: Spacing.base },
     routineCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.md,
         minWidth: 160,
         backgroundColor: Colors.light.card,
         padding: Spacing.base,
@@ -212,6 +177,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 1,
     },
+    routineTextContainer: {
+    },
     routineIconContainer: {
         width: 40,
         height: 40,
@@ -219,27 +186,8 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.sm,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: Spacing.md,
     },
     routineName: { fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: Colors.light.text },
     routineCount: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.xs, color: Colors.light.textSecondary, marginTop: 4 },
-    workoutList: { gap: Spacing.md, marginTop: Spacing.base },
-    workoutItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: Spacing.base,
-        backgroundColor: Colors.light.card,
-        borderRadius: BorderRadius.lg,
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-    },
-    workoutItemLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    workoutIcon: {
-        padding: Spacing.sm,
-        backgroundColor: Colors.light.border,
-        borderRadius: BorderRadius.sm,
-    },
-    workoutName: { fontFamily: 'Lexend_600SemiBold', fontSize: FontSize.base, color: Colors.light.text },
-    workoutMeta: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.xs, color: Colors.light.textSecondary },
+
 });
