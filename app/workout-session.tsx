@@ -87,7 +87,7 @@ export default function WorkoutSessionScreen() {
 
     if (!activeWorkout) {
         return (
-            <SafeAreaView style={styles.container}>
+            <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyText}>Starting workout...</Text>
                 </View>

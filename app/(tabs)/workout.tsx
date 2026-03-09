@@ -17,8 +17,21 @@ export default function WorkoutTab() {
     };
 
     if (activeWorkout) {
-        router.replace('/workout-session');
-        return null;
+        return (
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <View style={styles.content}>
+                    <View style={[styles.iconWrap, { backgroundColor: Colors.primaryMedium }]}>
+                        <MaterialIcons name="timer" size={48} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.title}>Workout In Progress</Text>
+                    <Text style={styles.subtitle}>You have an active session. Resume to continue logging.</Text>
+                    <TouchableOpacity style={styles.startButton} activeOpacity={0.8} onPress={() => router.push('/workout-session')}>
+                        <MaterialIcons name="play-arrow" size={24} color={Colors.dark.background} />
+                        <Text style={styles.startButtonText}>Resume Workout</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
     }
 
     return (
