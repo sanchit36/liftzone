@@ -199,7 +199,7 @@ export default function CalendarScreen() {
                     {selectedWorkouts.length > 0 ? (
                         <View style={s.workoutCards}>
                             {selectedWorkouts.map((w) => (
-                                <View key={w.id} style={s.wCard}>
+                                <TouchableOpacity key={w.id} style={s.wCard} onPress={() => router.push(`/workout-detail?id=${w.id}` as any)}>
                                     <View style={s.wIcon}>
                                         <MaterialIcons name="fitness-center" size={24} color={Colors.primary} />
                                     </View>
@@ -213,7 +213,7 @@ export default function CalendarScreen() {
                                         <Text style={s.wTime}>{formatTime(w.startedAt)}</Text>
                                         <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
                                     </View>
-                                </View>
+                                </TouchableOpacity>
                             ))}
                         </View>
                     ) : (

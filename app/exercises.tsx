@@ -99,7 +99,7 @@ export default function ExercisesScreen() {
             </ScrollView>
 
             {/* FAB */}
-            <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => router.push('/create-exercise' as any)}>
                 <MaterialIcons name="add" size={28} color={Colors.dark.background} />
             </TouchableOpacity>
         </SafeAreaView>

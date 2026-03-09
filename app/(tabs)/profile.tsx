@@ -88,7 +88,7 @@ export default function ProfileScreen() {
                     </View>
                     <View style={styles.historyList}>
                         {workoutHistory.slice(0, 3).map((w, i) => (
-                            <TouchableOpacity key={w.id} style={styles.historyCard} activeOpacity={0.7}>
+                            <TouchableOpacity key={w.id} style={styles.historyCard} activeOpacity={0.7} onPress={() => router.push(`/workout-detail?id=${w.id}` as any)}>
                                 <View style={styles.historyIcon}>
                                     <MaterialIcons name={getWorkoutIcon(i)} size={24} color={Colors.primary} />
                                 </View>
