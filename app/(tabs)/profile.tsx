@@ -3,13 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from '
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Rect } from 'react-native-svg';
 import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { useWorkoutStore } from '../../store/workoutStore';
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const { workoutHistory } = useWorkoutStore();
+    const { workoutHistory, streakDays } = useWorkoutStore();
 
     const weeklyData = [40, 100, 65, 80];
     const maxVal = Math.max(...weeklyData);
@@ -48,40 +47,25 @@ export default function ProfileScreen() {
     };
 
     return (
+
         <SafeAreaView style={styles.container} edges={['top']}>
+            <View style={styles.header}>
+                <View style={styles.headerLeft}>
+                    <View style={styles.logoContainer}>
+                        <MaterialIcons name="fitness-center" size={22} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.logoText}>Liftzeno</Text>
+                </View>
+                <View style={styles.streakBadge}>
+                    <MaterialIcons name="local-fire-department" size={16} color={Colors.primaryDark} />
+                    <Text style={styles.streakText}>
+                        {streakDays} Day Streak
+                    </Text>
+                </View>
+            </View>
+
+
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity style={styles.headerBtn}>
-                        <MaterialIcons name="settings" size={24} color={Colors.light.textSecondary} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>User Name</Text>
-                    <TouchableOpacity style={styles.headerBtn}>
-                        <MaterialIcons name="notifications" size={24} color={Colors.light.textSecondary} />
-                        <View style={styles.notifDot} />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Profile Avatar */}
-                <View style={styles.profileSection}>
-                    <View style={styles.avatarContainer}>
-                        <View style={styles.avatarRing}>
-                            <View style={styles.avatar}>
-                                <MaterialIcons name="person" size={48} color={Colors.primary} />
-                            </View>
-                        </View>
-                        <View style={styles.editBadge}>
-                            <MaterialIcons name="edit" size={14} color={Colors.dark.background} />
-                        </View>
-                    </View>
-                    <Text style={styles.profileName}>Alex Johnson</Text>
-                    <View style={styles.profileMeta}>
-                        <Text style={styles.memberLabel}>Gold Member</Text>
-                        <View style={styles.dot} />
-                        <Text style={styles.joinDate}>Joined Jan 2023</Text>
-                    </View>
-                </View>
-
                 {/* Weekly Chart */}
                 <View style={styles.chartCard}>
                     <View style={styles.chartHeader}>
@@ -167,61 +151,28 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: Spacing.base,
+        paddingHorizontal: Spacing.base,
+        paddingVertical: Spacing.md,
     },
-    headerBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.light.borderDark,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    headerTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
-    notifDot: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: Colors.primary,
-    },
-    profileSection: { alignItems: 'center', paddingVertical: Spacing.lg },
-    avatarContainer: { position: 'relative', marginBottom: Spacing.base },
-    avatarRing: {
-        padding: 4,
-        borderRadius: 56,
-        borderWidth: 2,
-        borderColor: Colors.primary,
-        backgroundColor: Colors.primaryMedium,
-    },
-    avatar: {
-        width: 96,
-        height: 96,
-        borderRadius: 48,
+    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    logoContainer: {
+        padding: Spacing.sm,
         backgroundColor: Colors.primaryLight,
-        alignItems: 'center',
-        justifyContent: 'center',
+        borderRadius: BorderRadius.sm,
     },
-    editBadge: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: Colors.primary,
+    logoText: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    streakBadge: {
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 4,
-        borderColor: Colors.light.background,
+        gap: Spacing.sm,
+        backgroundColor: Colors.primaryMedium,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: 6,
+        borderRadius: BorderRadius.full,
+        borderWidth: 1,
+        borderColor: 'rgba(19, 236, 106, 0.3)',
     },
-    profileName: { fontSize: FontSize.xxl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
-    profileMeta: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: 4 },
-    memberLabel: { fontSize: FontSize.sm, fontFamily: 'Lexend_500Medium', color: Colors.primary },
-    dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.light.textTertiary },
-    joinDate: { fontSize: FontSize.sm, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary },
+    streakText: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
     chartCard: {
         marginHorizontal: Spacing.base,
         padding: Spacing.lg,
