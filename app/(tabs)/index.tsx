@@ -27,7 +27,7 @@ export default function HomeScreen() {
         const routine = routines.find((r) => r.id === routineId);
         if (!routine) return;
         const { startWorkout } = useWorkoutStore.getState();
-        startWorkout(routineId, routine.name, routine.exerciseIds);
+        startWorkout(routineId, routine.name, routine.exerciseIds, routine.exerciseTemplates);
         router.push('/workout-session');
     };
 

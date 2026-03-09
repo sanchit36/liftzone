@@ -61,7 +61,7 @@ interface WorkoutState {
     streakDays: number;
 
     loadWorkoutHistory: () => void;
-    startWorkout: (routineId?: string, routineName?: string, exerciseIds?: string[]) => void;
+    startWorkout: (routineId?: string, routineName?: string, exerciseIds?: string[], exerciseTemplates?: RoutineExerciseTemplate[]) => void;
     finishWorkout: () => void;
     cancelWorkout: () => void;
 
@@ -143,16 +143,28 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         set({ workoutHistory: history, streakDays: calculateStreakFromHistory(history) });
     },
 
-    startWorkout: (routineId, routineName, exerciseIds) => {
+    startWorkout: (routineId, routineName, exerciseIds, exerciseTemplates) => {
         const exercises: WorkoutExercise[] = (exerciseIds || []).map((exId, i) => {
+            // Priority: 1) previous workout, 2) routine template, 3) empty default
             const prevSets = get().getPreviousSets(exId);
-            const defaultSets: SetData[] = prevSets
-                ? prevSets.map((s, si) => ({
+            const template = exerciseTemplates?.find((t) => t.exerciseId === exId);
+            let defaultSets: SetData[];
+            if (prevSets && prevSets.length > 0) {
+                defaultSets = prevSets.map((s, si) => ({
                     id: `s-${Date.now()}-${++setCounter}`,
                     weight: s.weight, reps: s.reps,
                     setIndex: si, completed: false,
-                }))
-                : [{ id: `s-${Date.now()}-${++setCounter}`, weight: 0, reps: 0, setIndex: 0, completed: false }];
+                }));
+            } else if (template && template.sets.length > 0) {
+                defaultSets = template.sets.map((s, si) => ({
+                    id: `s-${Date.now()}-${++setCounter}`,
+                    weight: s.weight, reps: s.reps,
+                    setIndex: si, completed: false,
+                }));
+            } else {
+                defaultSets = [{ id: `s-${Date.now()}-${++setCounter}`, weight: 0, reps: 0, setIndex: 0, completed: false }];
+            }
+
             return {
                 id: `we-${Date.now()}-${++exerciseCounter}`,
                 exerciseId: exId, orderIndex: i, sets: defaultSets,
