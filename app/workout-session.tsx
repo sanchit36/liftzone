@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useExerciseStore } from '../store/exerciseStore';
+import { useRoutineStore } from '../store/routineStore';
 import { useSettingsStore } from '../store/settingsStore';
 
 export default function WorkoutSessionScreen() {
@@ -67,8 +68,19 @@ export default function WorkoutSessionScreen() {
         ]);
     };
 
-    const handleCompleteSet = (weId: string, setId: string) => {
+    const handleCompleteSet = (weId: string, setId: string, exerciseId: string) => {
         completeSet(weId, setId);
+        // Look up per-exercise rest timer from routine template
+        const routineId = activeWorkout?.routineId;
+        if (routineId) {
+            const routine = useRoutineStore.getState().getRoutineById(routineId);
+            const template = routine?.exerciseTemplates?.find((t) => t.exerciseId === exerciseId);
+            if (template && template.restTimer > 0) {
+                startRestTimer(template.restTimer);
+                return;
+            }
+        }
+        // Fallback: use global setting
         if (restTimerEnabled) startRestTimer(90);
     };
 
@@ -163,7 +175,7 @@ export default function WorkoutSessionScreen() {
                                         />
                                         <TouchableOpacity
                                             style={[styles.checkBtn, s.completed && styles.checkBtnCompleted]}
-                                            onPress={() => handleCompleteSet(we.id, s.id)}
+                                            onPress={() => handleCompleteSet(we.id, s.id, we.exerciseId)}
                                         >
                                             <MaterialIcons name="check" size={20} color={s.completed ? Colors.light.text : Colors.light.textTertiary} />
                                         </TouchableOpacity>

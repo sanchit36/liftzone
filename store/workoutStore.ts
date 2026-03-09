@@ -117,7 +117,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
                 startedAt: Date.now(),
                 exercises,
                 restTimerEnd: null,
-                restDuration: 90,
+                restDuration: 0,
             },
         });
     },

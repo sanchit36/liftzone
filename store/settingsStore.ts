@@ -14,7 +14,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set) => ({
     weightUnit: 'kg',
     restTimerEnabled: false,
-    restTimerDuration: 90,
+    restTimerDuration: 0,
 
     toggleWeightUnit: () =>
         set((state) => ({ weightUnit: state.weightUnit === 'kg' ? 'lbs' : 'kg' })),

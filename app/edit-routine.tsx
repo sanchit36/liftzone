@@ -49,13 +49,13 @@ export default function EditRoutineScreen() {
                 return {
                     exerciseId: exId,
                     sets: prev.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })),
-                    restTimer: '90',
+                    restTimer: '0',
                 };
             }
             return {
                 exerciseId: exId,
                 sets: [{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }],
-                restTimer: '90',
+                restTimer: '0',
             };
         });
         setExercises(initial);
@@ -73,13 +73,13 @@ export default function EditRoutineScreen() {
                         return {
                             exerciseId: id,
                             sets: prev.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })),
-                            restTimer: '90',
+                            restTimer: '0',
                         };
                     }
                     return {
                         exerciseId: id,
                         sets: [{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }],
-                        restTimer: '90',
+                        restTimer: '0',
                     };
                 });
             if (newExercises.length > 0) {
@@ -104,7 +104,7 @@ export default function EditRoutineScreen() {
         const exerciseTemplates: RoutineExerciseTemplate[] = exercises.map((e) => ({
             exerciseId: e.exerciseId,
             sets: e.sets.map((s) => ({ weight: parseFloat(s.weight) || 0, reps: parseInt(s.reps) || 0 })),
-            restTimer: parseInt(e.restTimer) || 90,
+            restTimer: parseInt(e.restTimer)
         }));
         updateRoutine(routine.id, {
             name: name.trim(),
