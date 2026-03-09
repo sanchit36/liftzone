@@ -45,7 +45,6 @@ export default function RootLayout() {
                 <Stack.Screen
                     name="workout-session"
                     options={{
-                        presentation: 'fullScreenModal',
                         animation: 'slide_from_bottom',
                     }}
                 />
