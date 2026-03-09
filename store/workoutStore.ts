@@ -35,10 +35,22 @@ export interface ActiveWorkout {
     restDuration: number;
 }
 
+export interface RoutineSetTemplate {
+    weight: number;
+    reps: number;
+}
+
+export interface RoutineExerciseTemplate {
+    exerciseId: string;
+    sets: RoutineSetTemplate[];
+    restTimer: number; // seconds
+}
+
 export interface Routine {
     id: string;
     name: string;
     exerciseIds: string[];
+    exerciseTemplates?: RoutineExerciseTemplate[];
     createdAt: number;
     icon?: string;
 }

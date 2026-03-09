@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +10,14 @@ import { useRoutineStore } from '../../store/routineStore';
 export default function HomeScreen() {
     const router = useRouter();
     const { streakDays } = useWorkoutStore();
-    const { routines } = useRoutineStore();
+    const { routines, removeRoutine } = useRoutineStore();
+
+    const handleDeleteRoutine = (id: string, name: string) => {
+        Alert.alert('Delete Routine', `Are you sure you want to delete "${name}"?`, [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: () => removeRoutine(id) },
+        ]);
+    };
 
     const handleStartWorkout = () => {
         router.push('/workout-session');
@@ -75,22 +82,29 @@ export default function HomeScreen() {
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>Your Routines</Text>
                     </View>
-                    <FlatList
-                        data={routines}
-                        contentContainerStyle={styles.routineList}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.routineCard} activeOpacity={0.7} onPress={() => handleStartFromRoutine(item.id)}>
-                                <View style={styles.routineIconContainer}>
-                                    <MaterialIcons name={getRoutineIcon(item.icon)} size={22} color={Colors.primary} />
+                    <View style={styles.routineList}>
+                        {routines.map((item) => (
+                            <View key={item.id} style={styles.routineCard}>
+                                <TouchableOpacity style={styles.routineMain} activeOpacity={0.7} onPress={() => handleStartFromRoutine(item.id)}>
+                                    <View style={styles.routineIconContainer}>
+                                        <MaterialIcons name={getRoutineIcon(item.icon)} size={22} color={Colors.primary} />
+                                    </View>
+                                    <View style={styles.routineTextContainer}>
+                                        <Text style={styles.routineName}>{item.name}</Text>
+                                        <Text style={styles.routineCount}>{item.exerciseIds.length} Exercises</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <View style={styles.routineActions}>
+                                    <TouchableOpacity style={styles.routineActionBtn} onPress={() => router.push(`/edit-routine?id=${item.id}`)}>
+                                        <MaterialIcons name="edit" size={18} color={Colors.light.textSecondary} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.routineActionBtn} onPress={() => handleDeleteRoutine(item.id, item.name)}>
+                                        <MaterialIcons name="delete-outline" size={18} color="#e74c3c" />
+                                    </TouchableOpacity>
                                 </View>
-                                <View style={styles.routineTextContainer}>
-                                    <Text style={styles.routineName}>{item.name}</Text>
-                                    <Text style={styles.routineCount}>{item.exerciseIds.length} Exercises</Text>
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                    />
+                            </View>
+                        ))}
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -164,8 +178,6 @@ const styles = StyleSheet.create({
     routineCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.md,
-        minWidth: 160,
         backgroundColor: Colors.light.card,
         padding: Spacing.base,
         borderRadius: BorderRadius.lg,
@@ -177,8 +189,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 1,
     },
-    routineTextContainer: {
-    },
+    routineMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    routineTextContainer: { flex: 1 },
     routineIconContainer: {
         width: 40,
         height: 40,
@@ -189,5 +201,6 @@ const styles = StyleSheet.create({
     },
     routineName: { fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: Colors.light.text },
     routineCount: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.xs, color: Colors.light.textSecondary, marginTop: 4 },
-
+    routineActions: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+    routineActionBtn: { padding: Spacing.sm, borderRadius: BorderRadius.sm },
 });
