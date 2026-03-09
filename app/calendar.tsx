@@ -1,37 +1,115 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
-import { useWorkoutStore } from '../store/workoutStore';
+import { useWorkoutStore, CompletedWorkout } from '../store/workoutStore';
 
-const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export default function CalendarScreen() {
     const router = useRouter();
     const { workoutHistory } = useWorkoutStore();
-    const [selectedDay, setSelectedDay] = useState(12);
 
-    // Generate workout days from history (mock: days 3,6,10,12,16,20)
-    const workoutDays = new Set([3, 6, 10, 12, 16, 20]);
+    const today = new Date();
+    const [viewYear, setViewYear] = useState(today.getFullYear());
+    const [viewMonth, setViewMonth] = useState(today.getMonth());
+    const [selectedDate, setSelectedDate] = useState<string | null>(
+        `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+    );
 
-    // Calendar grid: October 2023 starts on Wednesday (index 3)
-    const startOffset = 3;
-    const daysInMonth = 31;
+    // Build a set of dates that have workouts: "YYYY-M-D" → workout[]
+    const workoutsByDate = useMemo(() => {
+        const map: Record<string, CompletedWorkout[]> = {};
+        workoutHistory.forEach((w) => {
+            const d = new Date(w.startedAt);
+            const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            if (!map[key]) map[key] = [];
+            map[key].push(w);
+        });
+        return map;
+    }, [workoutHistory]);
+
+    // Calendar grid for current month
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const startDayOfWeek = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
+
     const calendarCells: (number | null)[] = [];
-    for (let i = 0; i < startOffset; i++) calendarCells.push(null);
+    for (let i = 0; i < startDayOfWeek; i++) calendarCells.push(null);
     for (let i = 1; i <= daysInMonth; i++) calendarCells.push(i);
+
+    const isToday = (day: number) =>
+        viewYear === today.getFullYear() && viewMonth === today.getMonth() && day === today.getDate();
+
+    const dateKey = (day: number) => `${viewYear}-${viewMonth}-${day}`;
+
+    const goToPrevMonth = () => {
+        if (viewMonth === 0) { setViewYear(viewYear - 1); setViewMonth(11); }
+        else setViewMonth(viewMonth - 1);
+        setSelectedDate(null);
+    };
+
+    const goToNextMonth = () => {
+        if (viewMonth === 11) { setViewYear(viewYear + 1); setViewMonth(0); }
+        else setViewMonth(viewMonth + 1);
+        setSelectedDate(null);
+    };
+
+    const selectedWorkouts = selectedDate ? (workoutsByDate[selectedDate] || []) : [];
+    const selectedDayNum = selectedDate ? parseInt(selectedDate.split('-')[2]) : null;
+
+    const durationStr = (start: number, end: number) => {
+        const mins = Math.round((end - start) / 60000);
+        if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+        return `${mins}m`;
+    };
+
+    const totalVolume = (exercises: CompletedWorkout['exercises']) => {
+        let vol = 0;
+        exercises.forEach((e) => e.sets.forEach((s) => { if (s.completed) vol += s.weight * s.reps; }));
+        if (vol >= 1000) return `${(vol / 1000).toFixed(1)}k kg`;
+        return `${vol} kg`;
+    };
+
+    const formatTime = (ts: number) =>
+        new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+    // Month summary stats
+    const monthWorkouts = useMemo(() => {
+        return workoutHistory.filter((w) => {
+            const d = new Date(w.startedAt);
+            return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
+        });
+    }, [workoutHistory, viewYear, viewMonth]);
+
+    const monthStats = useMemo(() => {
+        let totalDuration = 0;
+        let totalSets = 0;
+        monthWorkouts.forEach((w) => {
+            totalDuration += w.endedAt - w.startedAt;
+            w.exercises.forEach((e) => { totalSets += e.sets.filter((s) => s.completed).length; });
+        });
+        return {
+            count: monthWorkouts.length,
+            hours: (totalDuration / (1000 * 60 * 60)).toFixed(1),
+            sets: totalSets,
+        };
+    }, [monthWorkouts]);
 
     return (
         <SafeAreaView style={s.container} edges={['top']}>
             <View style={s.header}>
                 <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.textSecondary} />
+                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
                 </TouchableOpacity>
                 <Text style={s.headerTitle}>Calendar</Text>
-                <TouchableOpacity>
-                    <MaterialIcons name="more-horiz" size={24} color={Colors.light.textSecondary} />
+                <TouchableOpacity onPress={() => {
+                    setViewYear(today.getFullYear()); setViewMonth(today.getMonth());
+                    setSelectedDate(`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`);
+                }}>
+                    <Text style={s.todayBtn}>Today</Text>
                 </TouchableOpacity>
             </View>
 
@@ -39,60 +117,109 @@ export default function CalendarScreen() {
                 {/* Calendar Card */}
                 <View style={s.calCard}>
                     <View style={s.monthRow}>
-                        <TouchableOpacity><MaterialIcons name="chevron-left" size={24} color={Colors.light.textSecondary} /></TouchableOpacity>
-                        <Text style={s.monthText}>October 2023</Text>
-                        <TouchableOpacity><MaterialIcons name="chevron-right" size={24} color={Colors.light.textSecondary} /></TouchableOpacity>
+                        <TouchableOpacity onPress={goToPrevMonth}>
+                            <MaterialIcons name="chevron-left" size={24} color={Colors.light.textSecondary} />
+                        </TouchableOpacity>
+                        <Text style={s.monthText}>{MONTH_NAMES[viewMonth]} {viewYear}</Text>
+                        <TouchableOpacity onPress={goToNextMonth}>
+                            <MaterialIcons name="chevron-right" size={24} color={Colors.light.textSecondary} />
+                        </TouchableOpacity>
                     </View>
                     <View style={s.dayHeaders}>
-                        {DAYS.map((d, i) => <Text key={i} style={s.dayHeader}>{d}</Text>)}
+                        {DAY_LABELS.map((d, i) => <Text key={i} style={s.dayHeader}>{d}</Text>)}
                     </View>
                     <View style={s.grid}>
-                        {calendarCells.map((day, i) => (
-                            <TouchableOpacity
-                                key={i}
-                                style={[s.dayCell, day === selectedDay && s.dayCellSelected]}
-                                onPress={() => day && setSelectedDay(day)}
-                                disabled={!day}
-                            >
-                                {day && (
-                                    <>
-                                        <Text style={[s.dayNum, day === selectedDay && s.dayNumSelected]}>{day}</Text>
-                                        {workoutDays.has(day) && (
-                                            <View style={[s.dot, day === selectedDay && s.dotSelected]} />
-                                        )}
-                                    </>
-                                )}
-                            </TouchableOpacity>
-                        ))}
+                        {calendarCells.map((day, i) => {
+                            const key = day ? dateKey(day) : '';
+                            const hasWorkout = day ? !!workoutsByDate[key] : false;
+                            const isSelected = day ? selectedDate === key : false;
+                            const isTodayCell = day ? isToday(day) : false;
+
+                            return (
+                                <TouchableOpacity
+                                    key={i}
+                                    style={[
+                                        s.dayCell,
+                                        isSelected && s.dayCellSelected,
+                                        isTodayCell && !isSelected && s.dayCellToday,
+                                    ]}
+                                    onPress={() => day && setSelectedDate(key)}
+                                    disabled={!day}
+                                >
+                                    {day && (
+                                        <>
+                                            <Text style={[
+                                                s.dayNum,
+                                                isSelected && s.dayNumSelected,
+                                                isTodayCell && !isSelected && s.dayNumToday,
+                                            ]}>{day}</Text>
+                                            {hasWorkout && (
+                                                <View style={[s.dot, isSelected && s.dotSelected]} />
+                                            )}
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* Month Summary */}
+                <View style={s.summaryRow}>
+                    <View style={s.summaryItem}>
+                        <Text style={s.summaryVal}>{monthStats.count}</Text>
+                        <Text style={s.summaryLabel}>Workouts</Text>
+                    </View>
+                    <View style={s.summaryDivider} />
+                    <View style={s.summaryItem}>
+                        <Text style={s.summaryVal}>{monthStats.hours}</Text>
+                        <Text style={s.summaryLabel}>Hours</Text>
+                    </View>
+                    <View style={s.summaryDivider} />
+                    <View style={s.summaryItem}>
+                        <Text style={s.summaryVal}>{monthStats.sets}</Text>
+                        <Text style={s.summaryLabel}>Sets</Text>
                     </View>
                 </View>
 
                 {/* Workouts for selected day */}
                 <View style={s.workoutsSection}>
                     <View style={s.workoutsSectionHeader}>
-                        <Text style={s.workoutsTitle}>Workouts for Oct {selectedDay}</Text>
-                        {workoutDays.has(selectedDay) && (
-                            <View style={s.badge}><Text style={s.badgeText}>Completed</Text></View>
+                        <Text style={s.workoutsTitle}>
+                            {selectedDayNum
+                                ? `${MONTH_NAMES[viewMonth].slice(0, 3)} ${selectedDayNum}`
+                                : 'Select a day'}
+                        </Text>
+                        {selectedWorkouts.length > 0 && (
+                            <View style={s.badge}>
+                                <Text style={s.badgeText}>{selectedWorkouts.length} workout{selectedWorkouts.length > 1 ? 's' : ''}</Text>
+                            </View>
                         )}
                     </View>
-                    {workoutDays.has(selectedDay) ? (
+                    {selectedWorkouts.length > 0 ? (
                         <View style={s.workoutCards}>
-                            <View style={s.wCard}>
-                                <View style={s.wIcon}><MaterialIcons name="fitness-center" size={24} color={Colors.primary} /></View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={s.wName}>Strength Training</Text>
-                                    <Text style={s.wMeta}>45 mins • High Intensity</Text>
+                            {selectedWorkouts.map((w) => (
+                                <View key={w.id} style={s.wCard}>
+                                    <View style={s.wIcon}>
+                                        <MaterialIcons name="fitness-center" size={24} color={Colors.primary} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={s.wName}>{w.routineName}</Text>
+                                        <Text style={s.wMeta}>
+                                            {durationStr(w.startedAt, w.endedAt)} • {w.exercises.length} exercise{w.exercises.length !== 1 ? 's' : ''} • {totalVolume(w.exercises)} vol
+                                        </Text>
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                                        <Text style={s.wTime}>{formatTime(w.startedAt)}</Text>
+                                        <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
+                                    </View>
                                 </View>
-                                <View style={{ alignItems: 'flex-end', gap: 4 }}>
-                                    <Text style={s.wTime}>07:30 AM</Text>
-                                    <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                                </View>
-                            </View>
+                            ))}
                         </View>
                     ) : (
                         <View style={s.restDay}>
                             <MaterialIcons name="self-improvement" size={32} color={Colors.light.textTertiary} />
-                            <Text style={s.restText}>Rest Day</Text>
+                            <Text style={s.restText}>{selectedDate ? 'Rest Day' : 'Tap a date to see workouts'}</Text>
                         </View>
                     )}
                 </View>
@@ -104,21 +231,37 @@ export default function CalendarScreen() {
 const s = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.light.background },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.base, paddingVertical: Spacing.lg },
-    backBtn: { padding: Spacing.sm, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.04)' },
+    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
     headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    todayBtn: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.primary },
     scroll: { paddingHorizontal: Spacing.base, paddingBottom: 40 },
+
     calCard: { backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg, padding: Spacing.base, borderWidth: 1, borderColor: Colors.light.border },
     monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg, paddingHorizontal: Spacing.sm },
     monthText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
     dayHeaders: { flexDirection: 'row', marginBottom: Spacing.sm },
     dayHeader: { flex: 1, textAlign: 'center', fontSize: FontSize.xs, fontFamily: 'Lexend_600SemiBold', color: Colors.light.textTertiary, textTransform: 'uppercase' },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
-    dayCell: { width: '14.28%', height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, position: 'relative' },
+    dayCell: { width: '14.28%', height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, position: 'relative' },
     dayCellSelected: { backgroundColor: Colors.primary },
+    dayCellToday: { borderWidth: 2, borderColor: Colors.primary },
     dayNum: { fontSize: FontSize.sm, fontFamily: 'Lexend_500Medium', color: Colors.light.text },
     dayNumSelected: { color: Colors.dark.background, fontFamily: 'Lexend_700Bold' },
-    dot: { position: 'absolute', bottom: 4, width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.primary },
+    dayNumToday: { color: Colors.primary, fontFamily: 'Lexend_700Bold' },
+    dot: { position: 'absolute', bottom: 4, width: 5, height: 5, borderRadius: 2.5, backgroundColor: Colors.primary },
     dotSelected: { backgroundColor: Colors.dark.background },
+
+    summaryRow: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+        marginTop: Spacing.base, paddingVertical: Spacing.base,
+        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg,
+        borderWidth: 1, borderColor: Colors.light.border,
+    },
+    summaryItem: { alignItems: 'center' },
+    summaryVal: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.primary },
+    summaryLabel: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary, marginTop: 2 },
+    summaryDivider: { width: 1, height: 32, backgroundColor: Colors.light.border },
+
     workoutsSection: { marginTop: Spacing.xxl },
     workoutsSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.base },
     workoutsTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text },

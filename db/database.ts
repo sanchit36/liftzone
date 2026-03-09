@@ -298,6 +298,22 @@ export function insertMeasurement(m: MeasurementRow): void {
     );
 }
 
+export function deleteMeasurement(id: string): void {
+    getDatabase().runSync('DELETE FROM measurements WHERE id = ?', id);
+}
+
+export function hasMeasurementToday(type: string): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const row = getDatabase().getFirstSync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM measurements WHERE type = ? AND date >= ? AND date < ?',
+        type, today.getTime(), tomorrow.getTime()
+    );
+    return (row?.count ?? 0) > 0;
+}
+
 // ─── SETTINGS QUERIES ─────────────────────────────────────────
 export function getSetting(key: string): string | null {
     const row = getDatabase().getFirstSync<{ value: string }>('SELECT value FROM settings WHERE key = ?', key);

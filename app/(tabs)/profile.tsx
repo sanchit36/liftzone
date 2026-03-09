@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,9 +9,6 @@ import { useWorkoutStore } from '../../store/workoutStore';
 export default function ProfileScreen() {
     const router = useRouter();
     const { workoutHistory, streakDays } = useWorkoutStore();
-
-    const weeklyData = [40, 100, 65, 80];
-    const maxVal = Math.max(...weeklyData);
 
     const timeAgo = (timestamp: number) => {
         const diff = Date.now() - timestamp;
@@ -66,39 +63,6 @@ export default function ProfileScreen() {
 
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                {/* Weekly Chart */}
-                <View style={styles.chartCard}>
-                    <View style={styles.chartHeader}>
-                        <View>
-                            <Text style={styles.chartLabel}>Weekly Workout Hours</Text>
-                            <Text style={styles.chartValue}>12.5 <Text style={styles.chartUnit}>hrs</Text></Text>
-                        </View>
-                        <View style={styles.trendBadge}>
-                            <MaterialIcons name="trending-up" size={16} color={Colors.primary} />
-                            <Text style={styles.trendText}>+15%</Text>
-                        </View>
-                    </View>
-                    <View style={styles.barChart}>
-                        {weeklyData.map((val, i) => (
-                            <View key={i} style={styles.barCol}>
-                                <View style={styles.barTrack}>
-                                    <View
-                                        style={[
-                                            styles.barFill,
-                                            {
-                                                height: `${(val / maxVal) * 100}%`,
-                                                backgroundColor: i === 1 ? Colors.primary : Colors.light.border,
-                                            },
-                                            i === 1 && styles.barActive,
-                                        ]}
-                                    />
-                                </View>
-                                <Text style={[styles.barLabel, i === 1 && styles.barLabelActive]}>Wk {i + 1}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </View>
-
                 {/* Menu Grid */}
                 <View style={styles.menuGrid}>
                     {menuItems.map((item, i) => (
@@ -202,6 +166,7 @@ const styles = StyleSheet.create({
     barActive: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
     barLabel: { fontSize: 10, fontFamily: 'Lexend_700Bold', color: Colors.light.textTertiary, textTransform: 'uppercase', letterSpacing: 1 },
     barLabelActive: { color: Colors.primary },
+    chartEmpty: { textAlign: 'center', marginTop: Spacing.base, fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textTertiary },
     menuGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',

@@ -37,7 +37,7 @@ export default function ExercisesScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.menuBtn} onPress={() => router.back()}>
+                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
                     <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Exercises</Text>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: Spacing.base, paddingTop: Spacing.lg, paddingBottom: Spacing.sm,
     },
-    menuBtn: { padding: Spacing.sm, borderRadius: BorderRadius.full },
+    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
     headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
     headerIcon: {
         width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryMedium,
