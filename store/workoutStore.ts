@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { MOCK_WORKOUTS } from '../data/mockData';
+import * as dbOps from '../db/database';
 
 export interface SetData {
     id: string;
@@ -43,7 +43,7 @@ export interface RoutineSetTemplate {
 export interface RoutineExerciseTemplate {
     exerciseId: string;
     sets: RoutineSetTemplate[];
-    restTimer: number; // seconds
+    restTimer: number;
 }
 
 export interface Routine {
@@ -60,6 +60,7 @@ interface WorkoutState {
     workoutHistory: CompletedWorkout[];
     streakDays: number;
 
+    loadWorkoutHistory: () => void;
     startWorkout: (routineId?: string, routineName?: string, exerciseIds?: string[]) => void;
     finishWorkout: () => void;
     cancelWorkout: () => void;
@@ -83,10 +84,64 @@ interface WorkoutState {
 let exerciseCounter = 0;
 let setCounter = 0;
 
+function loadHistoryFromDb(): CompletedWorkout[] {
+    const workoutRows = dbOps.getAllWorkouts();
+    return workoutRows.map((w) => {
+        const weRows = dbOps.getWorkoutExercises(w.id);
+        const exercises: WorkoutExercise[] = weRows.map((we) => {
+            const setRows = dbOps.getWorkoutSets(we.id);
+            return {
+                id: we.id,
+                exerciseId: we.exercise_id,
+                orderIndex: we.order_index,
+                sets: setRows.map((s) => ({
+                    id: s.id, weight: s.weight, reps: s.reps,
+                    setIndex: s.set_index, completed: s.completed === 1,
+                })),
+            };
+        });
+        return {
+            id: w.id, routineId: w.routine_id || undefined,
+            routineName: w.routine_name, startedAt: w.started_at,
+            endedAt: w.ended_at, exercises,
+        };
+    });
+}
+
+function calculateStreakFromHistory(history: CompletedWorkout[]): number {
+    if (history.length === 0) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayMs = 24 * 60 * 60 * 1000;
+    const workoutDays = new Set(
+        history.map((w) => {
+            const d = new Date(w.startedAt);
+            d.setHours(0, 0, 0, 0);
+            return d.getTime();
+        })
+    );
+    let streak = 0;
+    let checkDate = today.getTime();
+    // If no workout today, start from yesterday
+    if (!workoutDays.has(checkDate)) {
+        checkDate -= dayMs;
+    }
+    while (workoutDays.has(checkDate)) {
+        streak++;
+        checkDate -= dayMs;
+    }
+    return streak;
+}
+
 export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     activeWorkout: null,
-    workoutHistory: MOCK_WORKOUTS,
-    streakDays: 7,
+    workoutHistory: [],
+    streakDays: 0,
+
+    loadWorkoutHistory: () => {
+        const history = loadHistoryFromDb();
+        set({ workoutHistory: history, streakDays: calculateStreakFromHistory(history) });
+    },
 
     startWorkout: (routineId, routineName, exerciseIds) => {
         const exercises: WorkoutExercise[] = (exerciseIds || []).map((exId, i) => {
@@ -94,30 +149,22 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
             const defaultSets: SetData[] = prevSets
                 ? prevSets.map((s, si) => ({
                     id: `s-${Date.now()}-${++setCounter}`,
-                    weight: s.weight,
-                    reps: s.reps,
-                    setIndex: si,
-                    completed: false,
+                    weight: s.weight, reps: s.reps,
+                    setIndex: si, completed: false,
                 }))
                 : [{ id: `s-${Date.now()}-${++setCounter}`, weight: 0, reps: 0, setIndex: 0, completed: false }];
-
             return {
                 id: `we-${Date.now()}-${++exerciseCounter}`,
-                exerciseId: exId,
-                orderIndex: i,
-                sets: defaultSets,
+                exerciseId: exId, orderIndex: i, sets: defaultSets,
             };
         });
 
         set({
             activeWorkout: {
-                id: `wk-${Date.now()}`,
-                routineId,
+                id: `wk-${Date.now()}`, routineId,
                 routineName: routineName || 'Empty Workout',
-                startedAt: Date.now(),
-                exercises,
-                restTimerEnd: null,
-                restDuration: 0,
+                startedAt: Date.now(), exercises,
+                restTimerEnd: null, restDuration: 0,
             },
         });
     },
@@ -127,19 +174,38 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         if (!activeWorkout) return;
 
         const completed: CompletedWorkout = {
-            id: activeWorkout.id,
-            routineId: activeWorkout.routineId,
+            id: activeWorkout.id, routineId: activeWorkout.routineId,
             routineName: activeWorkout.routineName,
-            startedAt: activeWorkout.startedAt,
-            endedAt: Date.now(),
+            startedAt: activeWorkout.startedAt, endedAt: Date.now(),
             exercises: activeWorkout.exercises,
         };
 
-        set((state) => ({
+        // Persist to SQLite
+        dbOps.insertWorkout({
+            id: completed.id, routine_id: completed.routineId || null,
+            routine_name: completed.routineName,
+            started_at: completed.startedAt, ended_at: completed.endedAt,
+        });
+        for (const we of completed.exercises) {
+            dbOps.insertWorkoutExercise({
+                id: we.id, workout_id: completed.id,
+                exercise_id: we.exerciseId, order_index: we.orderIndex,
+            });
+            for (const s of we.sets) {
+                dbOps.insertWorkoutSet({
+                    id: s.id, workout_exercise_id: we.id,
+                    set_index: s.setIndex, weight: s.weight,
+                    reps: s.reps, completed: s.completed ? 1 : 0,
+                });
+            }
+        }
+
+        const newHistory = [completed, ...get().workoutHistory];
+        set({
             activeWorkout: null,
-            workoutHistory: [completed, ...state.workoutHistory],
-            streakDays: state.streakDays + 1,
-        }));
+            workoutHistory: newHistory,
+            streakDays: calculateStreakFromHistory(newHistory),
+        });
     },
 
     cancelWorkout: () => set({ activeWorkout: null }),
@@ -152,44 +218,33 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         const defaultSets: SetData[] = prevSets
             ? prevSets.map((s, si) => ({
                 id: `s-${Date.now()}-${++setCounter}`,
-                weight: s.weight,
-                reps: s.reps,
-                setIndex: si,
-                completed: false,
+                weight: s.weight, reps: s.reps,
+                setIndex: si, completed: false,
             }))
             : [{ id: `s-${Date.now()}-${++setCounter}`, weight: 0, reps: 0, setIndex: 0, completed: false }];
 
         const newExercise: WorkoutExercise = {
             id: `we-${Date.now()}-${++exerciseCounter}`,
-            exerciseId,
-            orderIndex: activeWorkout.exercises.length,
+            exerciseId, orderIndex: activeWorkout.exercises.length,
             sets: defaultSets,
         };
 
         set({
-            activeWorkout: {
-                ...activeWorkout,
-                exercises: [...activeWorkout.exercises, newExercise],
-            },
+            activeWorkout: { ...activeWorkout, exercises: [...activeWorkout.exercises, newExercise] },
         });
     },
 
     removeExerciseFromWorkout: (workoutExerciseId) => {
         const { activeWorkout } = get();
         if (!activeWorkout) return;
-
         set({
-            activeWorkout: {
-                ...activeWorkout,
-                exercises: activeWorkout.exercises.filter((e) => e.id !== workoutExerciseId),
-            },
+            activeWorkout: { ...activeWorkout, exercises: activeWorkout.exercises.filter((e) => e.id !== workoutExerciseId) },
         });
     },
 
     addSet: (workoutExerciseId) => {
         const { activeWorkout } = get();
         if (!activeWorkout) return;
-
         set({
             activeWorkout: {
                 ...activeWorkout,
@@ -198,16 +253,11 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
                     const lastSet = e.sets[e.sets.length - 1];
                     return {
                         ...e,
-                        sets: [
-                            ...e.sets,
-                            {
-                                id: `s-${Date.now()}-${++setCounter}`,
-                                weight: lastSet?.weight || 0,
-                                reps: lastSet?.reps || 0,
-                                setIndex: e.sets.length,
-                                completed: false,
-                            },
-                        ],
+                        sets: [...e.sets, {
+                            id: `s-${Date.now()}-${++setCounter}`,
+                            weight: lastSet?.weight || 0, reps: lastSet?.reps || 0,
+                            setIndex: e.sets.length, completed: false,
+                        }],
                     };
                 }),
             },
@@ -217,7 +267,6 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     removeSet: (workoutExerciseId, setId) => {
         const { activeWorkout } = get();
         if (!activeWorkout) return;
-
         set({
             activeWorkout: {
                 ...activeWorkout,
@@ -232,16 +281,12 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     updateSet: (workoutExerciseId, setId, field, value) => {
         const { activeWorkout } = get();
         if (!activeWorkout) return;
-
         set({
             activeWorkout: {
                 ...activeWorkout,
                 exercises: activeWorkout.exercises.map((e) => {
                     if (e.id !== workoutExerciseId) return e;
-                    return {
-                        ...e,
-                        sets: e.sets.map((s) => (s.id === setId ? { ...s, [field]: value } : s)),
-                    };
+                    return { ...e, sets: e.sets.map((s) => (s.id === setId ? { ...s, [field]: value } : s)) };
                 }),
             },
         });
@@ -250,16 +295,12 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     completeSet: (workoutExerciseId, setId) => {
         const { activeWorkout } = get();
         if (!activeWorkout) return;
-
         set({
             activeWorkout: {
                 ...activeWorkout,
                 exercises: activeWorkout.exercises.map((e) => {
                     if (e.id !== workoutExerciseId) return e;
-                    return {
-                        ...e,
-                        sets: e.sets.map((s) => (s.id === setId ? { ...s, completed: !s.completed } : s)),
-                    };
+                    return { ...e, sets: e.sets.map((s) => (s.id === setId ? { ...s, completed: !s.completed } : s)) };
                 }),
             },
         });
@@ -268,9 +309,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     startRestTimer: (duration) => {
         const { activeWorkout } = get();
         if (!activeWorkout) return;
-        set({
-            activeWorkout: { ...activeWorkout, restTimerEnd: Date.now() + duration * 1000, restDuration: duration },
-        });
+        set({ activeWorkout: { ...activeWorkout, restTimerEnd: Date.now() + duration * 1000, restDuration: duration } });
     },
 
     clearRestTimer: () => {
@@ -280,10 +319,19 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     },
 
     getPreviousSets: (exerciseId) => {
+        // First check in-memory history
         const history = get().workoutHistory;
         for (const w of history) {
             const exercise = w.exercises.find((e) => e.exerciseId === exerciseId);
             if (exercise) return exercise.sets;
+        }
+        // Fallback to DB query
+        const dbSets = dbOps.getPreviousSetsForExercise(exerciseId);
+        if (dbSets && dbSets.length > 0) {
+            return dbSets.map((s) => ({
+                id: s.id, weight: s.weight, reps: s.reps,
+                setIndex: s.set_index, completed: s.completed === 1,
+            }));
         }
         return undefined;
     },
@@ -292,9 +340,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
     getTotalStats: () => {
         const history = get().workoutHistory;
-        let sets = 0;
-        let reps = 0;
-        let volume = 0;
+        let sets = 0, reps = 0, volume = 0;
         history.forEach((w) => {
             w.exercises.forEach((e) => {
                 e.sets.forEach((s) => {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { MOCK_MEASUREMENTS } from '../data/mockData';
+import * as db from '../db/database';
 
 export type MeasureType = 'weight' | 'bodyFat' | 'waist' | 'chest' | 'arms';
 
@@ -21,16 +21,32 @@ export const MEASURE_LABELS: Record<MeasureType, string> = {
 
 interface MeasureState {
     measurements: Measurement[];
+    loadMeasurements: () => void;
     addMeasurement: (measurement: Measurement) => void;
     getMeasurementsByType: (type: MeasureType) => Measurement[];
     getLatestByType: (type: MeasureType) => Measurement | undefined;
 }
 
 export const useMeasureStore = create<MeasureState>((set, get) => ({
-    measurements: MOCK_MEASUREMENTS,
+    measurements: [],
 
-    addMeasurement: (measurement) =>
-        set((state) => ({ measurements: [...state.measurements, measurement] })),
+    loadMeasurements: () => {
+        const rows = db.getAllMeasurements();
+        set({
+            measurements: rows.map((r) => ({
+                id: r.id, type: r.type as MeasureType,
+                value: r.value, unit: r.unit, date: r.date,
+            })),
+        });
+    },
+
+    addMeasurement: (measurement) => {
+        db.insertMeasurement({
+            id: measurement.id, type: measurement.type,
+            value: measurement.value, unit: measurement.unit, date: measurement.date,
+        });
+        set((state) => ({ measurements: [...state.measurements, measurement] }));
+    },
 
     getMeasurementsByType: (type) =>
         get()

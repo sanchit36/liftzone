@@ -1,10 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Lexend_300Light, Lexend_400Regular, Lexend_500Medium, Lexend_600SemiBold, Lexend_700Bold } from '@expo-google-fonts/lexend';
 import * as SplashScreen from 'expo-splash-screen';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Colors } from '../constants/theme';
+import { initDatabase } from '../db/database';
+import { useExerciseStore } from '../store/exerciseStore';
+import { useRoutineStore } from '../store/routineStore';
+import { useWorkoutStore } from '../store/workoutStore';
+import { useMeasureStore } from '../store/measureStore';
+import { useSettingsStore } from '../store/settingsStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,14 +22,30 @@ export default function RootLayout() {
         Lexend_600SemiBold,
         Lexend_700Bold,
     });
+    const [dbReady, setDbReady] = useState(false);
 
     useEffect(() => {
-        if (fontsLoaded) {
+        try {
+            initDatabase();
+            useExerciseStore.getState().loadExercises();
+            useRoutineStore.getState().loadRoutines();
+            useWorkoutStore.getState().loadWorkoutHistory();
+            useMeasureStore.getState().loadMeasurements();
+            useSettingsStore.getState().loadSettings();
+            setDbReady(true);
+        } catch (e) {
+            console.error('Database init failed:', e);
+            setDbReady(true); // Still proceed to prevent infinite loading
+        }
+    }, []);
+
+    useEffect(() => {
+        if (fontsLoaded && dbReady) {
             SplashScreen.hideAsync();
         }
-    }, [fontsLoaded]);
+    }, [fontsLoaded, dbReady]);
 
-    if (!fontsLoaded) {
+    if (!fontsLoaded || !dbReady) {
         return (
             <View style={styles.loading}>
                 <ActivityIndicator size="large" color={Colors.primary} />
