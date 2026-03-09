@@ -56,7 +56,10 @@ export default function HomeScreen() {
                     <Text style={styles.logoText}>Liftzeno</Text>
                 </View>
                 <View style={styles.streakBadge}>
-                    <Text style={styles.streakText}>🔥 {streakDays} Day Streak</Text>
+                    <MaterialIcons name="local-fire-department" size={16} color={Colors.primaryDark} />
+                    <Text style={styles.streakText}>
+                        {streakDays} Day Streak
+                    </Text>
                 </View>
             </View>
 
@@ -149,6 +152,9 @@ const styles = StyleSheet.create({
     },
     logoText: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
     streakBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
         backgroundColor: Colors.primaryMedium,
         paddingHorizontal: Spacing.md,
         paddingVertical: 6,
