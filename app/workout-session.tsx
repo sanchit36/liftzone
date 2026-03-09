@@ -72,17 +72,8 @@ export default function WorkoutSessionScreen() {
         if (restTimerEnabled) startRestTimer(90);
     };
 
-    const exercises = useExerciseStore.getState().exercises;
     const handleAddExercise = () => {
-        // For now, show quick-add with first few exercises
-        const available = exercises.slice(0, 8);
-        Alert.alert('Add Exercise', 'Choose an exercise', [
-            ...available.map((ex) => ({
-                text: ex.name,
-                onPress: () => addExerciseToWorkout(ex.id),
-            })),
-            { text: 'Cancel', style: 'cancel' as const },
-        ]);
+        router.push('/add-exercises');
     };
 
     if (!activeWorkout) {

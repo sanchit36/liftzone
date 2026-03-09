@@ -53,6 +53,7 @@ export default function RootLayout() {
                 <Stack.Screen name="measures" />
                 <Stack.Screen name="calendar" />
                 <Stack.Screen name="create-routine" />
+                <Stack.Screen name="add-exercises" />
             </Stack>
         </>
     );
