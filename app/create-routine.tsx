@@ -6,12 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useExerciseStore } from '../store/exerciseStore';
 import { useRoutineStore } from '../store/routineStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 export default function CreateRoutineScreen() {
     const router = useRouter();
     const { getExerciseById } = useExerciseStore();
     const { addRoutine, draftExerciseIds, removeFromDraft, clearDraft } = useRoutineStore();
     const [name, setName] = useState('');
+    const c = useThemeColors();
 
     // Clear draft on mount
     useEffect(() => {
@@ -36,13 +38,13 @@ export default function CreateRoutineScreen() {
     };
 
     return (
-        <SafeAreaView style={s.container} edges={['top']}>
+        <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
             {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => { clearDraft(); router.back(); }}>
-                    <MaterialIcons name="close" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="close" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>New Routine</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>New Routine</Text>
                 <TouchableOpacity onPress={handleSave}>
                     <Text style={[s.saveBtn, (!name.trim() || draftExerciseIds.length === 0) && s.saveBtnDisabled]}>Save</Text>
                 </TouchableOpacity>
@@ -53,7 +55,7 @@ export default function CreateRoutineScreen() {
                 <TextInput
                     style={s.nameInput}
                     placeholder="Routine Name"
-                    placeholderTextColor={Colors.light.textTertiary}
+                    placeholderTextColor={c.textTertiary}
                     value={name}
                     onChangeText={setName}
                     autoFocus
@@ -80,12 +82,12 @@ export default function CreateRoutineScreen() {
                         const ex = getExerciseById(exId);
                         if (!ex) return null;
                         return (
-                            <View key={exId} style={s.exRow}>
+                            <View key={exId} style={[s.exRow, { backgroundColor: c.card, borderColor: c.border }]}>
                                 <View style={s.exIndex}>
                                     <Text style={s.exIndexText}>{index + 1}</Text>
                                 </View>
                                 <View style={s.exInfo}>
-                                    <Text style={s.exName}>{ex.name}</Text>
+                                    <Text style={[s.exName, { color: c.text }]}>{ex.name}</Text>
                                     <Text style={s.exMeta}>{ex.muscleGroup} • {ex.equipment}</Text>
                                 </View>
                                 <TouchableOpacity style={s.removeBtn} onPress={() => removeFromDraft(exId)}>
@@ -109,7 +111,7 @@ export default function CreateRoutineScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.base },
     headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
     saveBtn: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.primary },

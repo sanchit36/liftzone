@@ -18,16 +18,16 @@ export const Colors = {
     },
 
     dark: {
-        background: '#102217',
-        card: '#1e293b',
+        background: '#0f0f0f',
+        card: '#1a1a1a',
         text: '#f1f5f9',
-        textSecondary: '#94a3b8',
-        textTertiary: '#64748b',
-        border: '#1e293b',
-        borderDark: '#334155',
-        inputBg: '#1e293b',
-        tabBar: 'rgba(16, 34, 23, 0.95)',
-        icon: '#64748b',
+        textSecondary: '#9ca3af',
+        textTertiary: '#6b7280',
+        border: '#2a2a2a',
+        borderDark: '#3a3a3a',
+        inputBg: '#1a1a1a',
+        tabBar: 'rgba(15, 15, 15, 0.97)',
+        icon: '#6b7280',
     },
 };
 

@@ -7,6 +7,7 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useExerciseStore } from '../store/exerciseStore';
 import { useRoutineStore } from '../store/routineStore';
 import { useWorkoutStore, RoutineExerciseTemplate } from '../store/workoutStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface EditableSet {
     weight: string;
@@ -25,6 +26,7 @@ export default function EditRoutineScreen() {
     const { getExerciseById } = useExerciseStore();
     const { getRoutineById, updateRoutine, draftExerciseIds, clearDraft } = useRoutineStore();
     const { getPreviousSets } = useWorkoutStore();
+    const c = useThemeColors();
 
     const routine = getRoutineById(params.id || '');
     const [name, setName] = useState(routine?.name || '');
@@ -91,7 +93,7 @@ export default function EditRoutineScreen() {
 
     if (!routine) {
         return (
-            <SafeAreaView style={s.container} edges={['top']}>
+            <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
                 <View style={s.emptyState}>
                     <Text style={s.emptyText}>Routine not found</Text>
                 </View>
@@ -162,13 +164,13 @@ export default function EditRoutineScreen() {
     };
 
     return (
-        <SafeAreaView style={s.container} edges={['top']}>
+        <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
             {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="arrow-back" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Edit Routine</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>Edit Routine</Text>
                 <TouchableOpacity onPress={handleSave}>
                     <Text style={s.saveBtn}>Save</Text>
                 </TouchableOpacity>
@@ -177,9 +179,9 @@ export default function EditRoutineScreen() {
             {/* Routine Name */}
             <View style={s.nameWrap}>
                 <TextInput
-                    style={s.nameInput}
+                    style={[s.nameInput, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
                     placeholder="Routine Name"
-                    placeholderTextColor={Colors.light.textTertiary}
+                    placeholderTextColor={c.textTertiary}
                     value={name}
                     onChangeText={setName}
                 />
@@ -192,7 +194,7 @@ export default function EditRoutineScreen() {
                     if (!ex) return null;
 
                     return (
-                        <View key={re.exerciseId} style={s.exerciseBlock}>
+                        <View key={re.exerciseId} style={[s.exerciseBlock, { borderBottomColor: c.border }]}>
                             {/* Exercise Header */}
                             <View style={s.exerciseHeader}>
                                 <View style={s.exerciseLeft}>
@@ -200,7 +202,7 @@ export default function EditRoutineScreen() {
                                         <Text style={s.exerciseIndexText}>{index + 1}</Text>
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={s.exerciseName}>{ex.name}</Text>
+                                        <Text style={[s.exerciseName, { color: c.text }]}>{ex.name}</Text>
                                         <Text style={s.exerciseMuscle}>{ex.muscleGroup} • {ex.equipment}</Text>
                                     </View>
                                 </View>
@@ -289,7 +291,7 @@ export default function EditRoutineScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.base, color: Colors.light.textSecondary },
 
@@ -298,7 +300,7 @@ const s = StyleSheet.create({
         paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,
     },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold' },
     saveBtn: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.primary },
 
     nameWrap: { paddingHorizontal: Spacing.base, marginBottom: Spacing.sm },

@@ -5,10 +5,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { useWorkoutStore } from '../../store/workoutStore';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const { workoutHistory, streakDays } = useWorkoutStore();
+    const c = useThemeColors();
 
     const timeAgo = (timestamp: number) => {
         const diff = Date.now() - timestamp;
@@ -44,23 +46,21 @@ export default function ProfileScreen() {
     };
 
     return (
-
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
                     <View style={styles.logoContainer}>
                         <MaterialIcons name="fitness-center" size={22} color={Colors.primary} />
                     </View>
-                    <Text style={styles.logoText}>Liftzeno</Text>
+                    <Text style={[styles.logoText, { color: c.text }]}>Liftzeno</Text>
                 </View>
                 <View style={styles.streakBadge}>
                     <MaterialIcons name="local-fire-department" size={16} color={Colors.primaryDark} />
-                    <Text style={styles.streakText}>
+                    <Text style={[styles.streakText, { color: c.text }]}>
                         {streakDays} Day Streak
                     </Text>
                 </View>
             </View>
-
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Menu Grid */}
@@ -68,12 +68,12 @@ export default function ProfileScreen() {
                     {menuItems.map((item, i) => (
                         <TouchableOpacity
                             key={i}
-                            style={styles.menuItem}
+                            style={[styles.menuItem, { backgroundColor: c.card, borderColor: c.border }]}
                             activeOpacity={0.7}
                             onPress={() => router.push(item.route as any)}
                         >
                             <MaterialIcons name={item.icon} size={24} color={Colors.primary} />
-                            <Text style={styles.menuLabel}>{item.label}</Text>
+                            <Text style={[styles.menuLabel, { color: c.text }]}>{item.label}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -81,24 +81,24 @@ export default function ProfileScreen() {
                 {/* Workout History */}
                 <View style={styles.historySection}>
                     <View style={styles.historySectionHeader}>
-                        <Text style={styles.historyTitle}>Workout History</Text>
+                        <Text style={[styles.historyTitle, { color: c.text }]}>Workout History</Text>
                         <TouchableOpacity>
                             <Text style={styles.viewAll}>View All</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.historyList}>
                         {workoutHistory.slice(0, 3).map((w, i) => (
-                            <TouchableOpacity key={w.id} style={styles.historyCard} activeOpacity={0.7} onPress={() => router.push(`/workout-detail?id=${w.id}` as any)}>
+                            <TouchableOpacity key={w.id} style={[styles.historyCard, { backgroundColor: c.card, borderColor: c.border }]} activeOpacity={0.7} onPress={() => router.push(`/workout-detail?id=${w.id}` as any)}>
                                 <View style={styles.historyIcon}>
                                     <MaterialIcons name={getWorkoutIcon(i)} size={24} color={Colors.primary} />
                                 </View>
                                 <View style={styles.historyInfo}>
-                                    <Text style={styles.historyName}>{w.routineName}</Text>
-                                    <Text style={styles.historyMeta}>
+                                    <Text style={[styles.historyName, { color: c.text }]}>{w.routineName}</Text>
+                                    <Text style={[styles.historyMeta, { color: c.textSecondary }]}>
                                         {timeAgo(w.startedAt)} • {durationStr(w.startedAt, w.endedAt)} • {totalVolume(w.exercises)}kg vol.
                                     </Text>
                                 </View>
-                                <MaterialIcons name="chevron-right" size={24} color={Colors.light.borderDark} />
+                                <MaterialIcons name="chevron-right" size={24} color={c.borderDark} />
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -109,107 +109,42 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     scrollContent: { paddingBottom: 40 },
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: Spacing.base,
-        paddingVertical: Spacing.md,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,
     },
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    logoContainer: {
-        padding: Spacing.sm,
-        backgroundColor: Colors.primaryLight,
-        borderRadius: BorderRadius.sm,
-    },
-    logoText: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    logoContainer: { padding: Spacing.sm, backgroundColor: Colors.primaryLight, borderRadius: BorderRadius.sm },
+    logoText: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold' },
     streakBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-        backgroundColor: Colors.primaryMedium,
-        paddingHorizontal: Spacing.md,
-        paddingVertical: 6,
-        borderRadius: BorderRadius.full,
-        borderWidth: 1,
-        borderColor: 'rgba(19, 236, 106, 0.3)',
+        flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+        backgroundColor: Colors.primaryMedium, paddingHorizontal: Spacing.md, paddingVertical: 6,
+        borderRadius: BorderRadius.full, borderWidth: 1, borderColor: 'rgba(19, 236, 106, 0.3)',
     },
-    streakText: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
-    chartCard: {
-        marginHorizontal: Spacing.base,
-        padding: Spacing.lg,
-        backgroundColor: Colors.light.card,
-        borderRadius: BorderRadius.lg,
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-    },
-    chartHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: Spacing.xl },
-    chartLabel: { fontSize: FontSize.sm, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary },
-    chartValue: { fontSize: FontSize.xxxl, fontFamily: 'Lexend_700Bold', color: Colors.light.text, marginTop: 4 },
-    chartUnit: { fontSize: FontSize.sm, fontFamily: 'Lexend_400Regular', color: Colors.light.textTertiary },
-    trendBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: Colors.primaryLight,
-        paddingHorizontal: Spacing.md,
-        paddingVertical: 4,
-        borderRadius: BorderRadius.full,
-    },
-    trendText: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.primary },
-    barChart: { flexDirection: 'row', height: 128, gap: Spacing.base, paddingHorizontal: Spacing.sm },
-    barCol: { flex: 1, alignItems: 'center', gap: Spacing.sm },
-    barTrack: { flex: 1, width: '100%', justifyContent: 'flex-end', borderRadius: 4, overflow: 'hidden' },
-    barFill: { width: '100%', borderTopLeftRadius: 6, borderTopRightRadius: 6 },
-    barActive: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
-    barLabel: { fontSize: 10, fontFamily: 'Lexend_700Bold', color: Colors.light.textTertiary, textTransform: 'uppercase', letterSpacing: 1 },
-    barLabelActive: { color: Colors.primary },
-    chartEmpty: { textAlign: 'center', marginTop: Spacing.base, fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textTertiary },
-    menuGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.md,
-        padding: Spacing.base,
-    },
+    streakText: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold' },
+    menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, padding: Spacing.base },
     menuItem: {
-        width: '47%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.md,
-        paddingVertical: Spacing.base,
-        paddingHorizontal: Spacing.base,
-        backgroundColor: Colors.light.card,
-        borderRadius: BorderRadius.lg,
-        borderWidth: 1,
-        borderColor: Colors.light.border,
+        width: '47%', flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+        paddingVertical: Spacing.base, paddingHorizontal: Spacing.base,
+        borderRadius: BorderRadius.lg, borderWidth: 1,
     },
-    menuLabel: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    menuLabel: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold' },
     historySection: { paddingHorizontal: Spacing.base, marginBottom: Spacing.xxl },
     historySectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.base },
-    historyTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    historyTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold' },
     viewAll: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.primary },
     historyList: { gap: Spacing.md },
     historyCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.base,
-        padding: Spacing.base,
-        backgroundColor: Colors.light.card,
-        borderRadius: BorderRadius.lg,
-        borderWidth: 1,
-        borderColor: Colors.light.border,
+        flexDirection: 'row', alignItems: 'center', gap: Spacing.base, padding: Spacing.base,
+        borderRadius: BorderRadius.lg, borderWidth: 1,
     },
     historyIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: BorderRadius.sm,
-        backgroundColor: Colors.primaryLight,
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: 48, height: 48, borderRadius: BorderRadius.sm,
+        backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center',
     },
     historyInfo: { flex: 1 },
-    historyName: { fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: Colors.light.text },
-    historyMeta: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.xs, color: Colors.light.textSecondary, marginTop: 2 },
+    historyName: { fontFamily: 'Lexend_700Bold', fontSize: FontSize.base },
+    historyMeta: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.xs, marginTop: 2 },
 });

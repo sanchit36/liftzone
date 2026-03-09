@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop, Line, Text as SvgText } from 'react-native-svg';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useMeasureStore, MeasureType, MEASURE_LABELS, MEASURE_LIMITS } from '../store/measureStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const ALL_TYPES: MeasureType[] = ['weight', 'bodyFat', 'waist', 'chest', 'arms'];
 const UNIT_MAP: Record<MeasureType, string> = { weight: 'kg', bodyFat: '%', waist: 'cm', chest: 'cm', arms: 'cm' };
@@ -19,6 +20,7 @@ export default function MeasuresScreen() {
     const [selectedType, setSelectedType] = useState<MeasureType>('weight');
     const [activePoint, setActivePoint] = useState<number | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const c = useThemeColors();
     const [addType, setAddType] = useState<MeasureType>('weight');
     const [addValue, setAddValue] = useState('');
 
@@ -122,12 +124,12 @@ export default function MeasuresScreen() {
     };
 
     return (
-        <SafeAreaView style={s.container} edges={['top']}>
+        <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="arrow-back" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Measures</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>Measures</Text>
                 <TouchableOpacity onPress={() => { setAddType(selectedType); setShowAddModal(true); }} style={s.backBtn}>
                     <MaterialIcons name="add" size={24} color={Colors.primary} />
                 </TouchableOpacity>
@@ -326,7 +328,7 @@ export default function MeasuresScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.base, borderBottomWidth: 1, borderBottomColor: 'rgba(19,236,106,0.1)' },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
     headerTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text },

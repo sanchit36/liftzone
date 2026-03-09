@@ -8,6 +8,7 @@ import { useExerciseStore } from '../store/exerciseStore';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useRoutineStore } from '../store/routineStore';
 import { MuscleGroup, Equipment, Category, MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, CATEGORY_LABELS } from '../data/exercises';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const ALL_MUSCLES: MuscleGroup[] = ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'];
 const ALL_EQUIPMENT: Equipment[] = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight'];
@@ -24,6 +25,7 @@ export default function AddExercisesScreen() {
     const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const c = useThemeColors();
 
     const filtered = useMemo(() => {
         let list = exercises;
@@ -62,13 +64,13 @@ export default function AddExercisesScreen() {
     const hasFilters = selectedMuscle || selectedEquipment || selectedCategory || query.trim();
 
     return (
-        <SafeAreaView style={s.container} edges={['top']}>
+        <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
             {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-                    <MaterialIcons name="close" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="close" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Add Exercises</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>Add Exercises</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -203,13 +205,13 @@ export default function AddExercisesScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,
     },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold' },
 
     searchWrap: { paddingHorizontal: Spacing.base, paddingBottom: Spacing.sm },
     searchBox: {

@@ -8,12 +8,14 @@ import { useWorkoutStore } from '../store/workoutStore';
 import { useExerciseStore } from '../store/exerciseStore';
 import { useRoutineStore } from '../store/routineStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 export default function WorkoutSessionScreen() {
     const router = useRouter();
     const { activeWorkout, finishWorkout, cancelWorkout, addExerciseToWorkout, addSet, removeSet, updateSet, completeSet, startRestTimer, clearRestTimer } = useWorkoutStore();
     const { getExerciseById } = useExerciseStore();
     const { weightUnit, restTimerEnabled } = useSettingsStore();
+    const c = useThemeColors();
 
     const [elapsed, setElapsed] = useState(0);
     const [restRemaining, setRestRemaining] = useState(0);
@@ -90,7 +92,7 @@ export default function WorkoutSessionScreen() {
 
     if (!activeWorkout) {
         return (
-            <SafeAreaView style={styles.container} edges={['top']}>
+            <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyText}>Starting workout...</Text>
                 </View>
@@ -101,11 +103,11 @@ export default function WorkoutSessionScreen() {
     const unitLabel = weightUnit.toUpperCase();
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.closeBtn} onPress={handleCancel}>
-                    <MaterialIcons name="close" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="close" size={24} color={c.text} />
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerLabel}>ACTIVE SESSION</Text>

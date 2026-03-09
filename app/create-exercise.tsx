@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useExerciseStore } from '../store/exerciseStore';
 import { MuscleGroup, Equipment, Category, MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, CATEGORY_LABELS } from '../data/exercises';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const MUSCLE_GROUPS: MuscleGroup[] = ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'];
 const EQUIPMENTS: Equipment[] = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight', 'other'];
@@ -20,6 +21,7 @@ export default function CreateExerciseScreen() {
     const [equipment, setEquipment] = useState<Equipment | null>(null);
     const [category, setCategory] = useState<Category | null>(null);
     const [instructions, setInstructions] = useState('');
+    const c = useThemeColors();
 
     const handleSave = () => {
         const trimmedName = name.trim();
@@ -44,12 +46,12 @@ export default function CreateExerciseScreen() {
     };
 
     return (
-        <SafeAreaView style={s.container} edges={['top']}>
+        <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
             <View style={s.header}>
                 <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="arrow-back" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>New Exercise</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>New Exercise</Text>
                 <TouchableOpacity onPress={handleSave}>
                     <Text style={s.saveBtn}>Save</Text>
                 </TouchableOpacity>
@@ -57,9 +59,9 @@ export default function CreateExerciseScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
                 {/* Name */}
-                <Text style={s.label}>Exercise Name</Text>
+                <Text style={[s.label, { color: c.text }]}>Exercise Name</Text>
                 <TextInput
-                    style={s.input}
+                    style={[s.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
                     placeholder="e.g. Bulgarian Split Squat"
                     placeholderTextColor={Colors.light.textTertiary}
                     value={name}
@@ -70,12 +72,12 @@ export default function CreateExerciseScreen() {
                 <Text style={s.charCount}>{name.length}/50</Text>
 
                 {/* Muscle Group */}
-                <Text style={s.label}>Muscle Group</Text>
+                <Text style={[s.label, { color: c.text }]}>Muscle Group</Text>
                 <View style={s.chipRow}>
                     {MUSCLE_GROUPS.map((mg) => (
                         <TouchableOpacity
                             key={mg}
-                            style={[s.chip, muscleGroup === mg && s.chipActive]}
+                            style={[s.chip, { backgroundColor: c.card, borderColor: c.border }, muscleGroup === mg && s.chipActive]}
                             onPress={() => setMuscleGroup(mg)}
                         >
                             <Text style={[s.chipText, muscleGroup === mg && s.chipTextActive]}>
@@ -86,12 +88,12 @@ export default function CreateExerciseScreen() {
                 </View>
 
                 {/* Equipment */}
-                <Text style={s.label}>Equipment</Text>
+                <Text style={[s.label, { color: c.text }]}>Equipment</Text>
                 <View style={s.chipRow}>
                     {EQUIPMENTS.map((eq) => (
                         <TouchableOpacity
                             key={eq}
-                            style={[s.chip, equipment === eq && s.chipActive]}
+                            style={[s.chip, { backgroundColor: c.card, borderColor: c.border }, equipment === eq && s.chipActive]}
                             onPress={() => setEquipment(eq)}
                         >
                             <Text style={[s.chipText, equipment === eq && s.chipTextActive]}>
@@ -102,12 +104,12 @@ export default function CreateExerciseScreen() {
                 </View>
 
                 {/* Category */}
-                <Text style={s.label}>Category</Text>
+                <Text style={[s.label, { color: c.text }]}>Category</Text>
                 <View style={s.chipRow}>
                     {CATEGORIES.map((cat) => (
                         <TouchableOpacity
                             key={cat}
-                            style={[s.chip, category === cat && s.chipActive]}
+                            style={[s.chip, { backgroundColor: c.card, borderColor: c.border }, category === cat && s.chipActive]}
                             onPress={() => setCategory(cat)}
                         >
                             <Text style={[s.chipText, category === cat && s.chipTextActive]}>
@@ -118,9 +120,9 @@ export default function CreateExerciseScreen() {
                 </View>
 
                 {/* Instructions */}
-                <Text style={s.label}>Instructions <Text style={s.optional}>(optional)</Text></Text>
+                <Text style={[s.label, { color: c.text }]}>Instructions <Text style={s.optional}>(optional)</Text></Text>
                 <TextInput
-                    style={[s.input, s.textArea]}
+                    style={[s.input, s.textArea, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
                     placeholder="Describe how to perform this exercise..."
                     placeholderTextColor={Colors.light.textTertiary}
                     value={instructions}
@@ -159,7 +161,7 @@ export default function CreateExerciseScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,

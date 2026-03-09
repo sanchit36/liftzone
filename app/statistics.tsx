@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useExerciseStore } from '../store/exerciseStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 export default function StatisticsScreen() {
     const router = useRouter();
@@ -13,6 +14,7 @@ export default function StatisticsScreen() {
     const { getExerciseById } = useExerciseStore();
     const stats = getTotalStats();
     const [activeBar, setActiveBar] = useState<number | null>(null);
+    const c = useThemeColors();
 
     // Find favorite exercise (most common)
     const exerciseCounts: Record<string, number> = {};
@@ -92,12 +94,12 @@ export default function StatisticsScreen() {
     ];
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="arrow-back" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Statistics</Text>
+                <Text style={[styles.headerTitle, { color: c.text }]}>Statistics</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -105,44 +107,44 @@ export default function StatisticsScreen() {
                 {/* Stats Grid */}
                 <View style={styles.statsGrid}>
                     {statItems.map((item, i) => (
-                        <View key={i} style={styles.statCard}>
+                        <View key={i} style={[styles.statCard, { backgroundColor: c.card, borderColor: c.border }]}>
                             <MaterialIcons name={item.icon} size={24} color={Colors.primary} />
-                            <Text style={styles.statLabel}>{item.label}</Text>
-                            <Text style={styles.statValue}>{item.value}</Text>
+                            <Text style={[styles.statLabel, { color: c.textSecondary }]}>{item.label}</Text>
+                            <Text style={[styles.statValue, { color: c.text }]}>{item.value}</Text>
                         </View>
                     ))}
                 </View>
 
                 {/* Highlights */}
                 <View style={styles.highlights}>
-                    <Text style={styles.sectionTitle}>Highlights</Text>
+                    <Text style={[styles.sectionTitle, { color: c.text }]}>Highlights</Text>
 
                     <View style={styles.streakCard}>
                         <View style={styles.streakIcon}>
-                            <MaterialIcons name="local-fire-department" size={28} color={Colors.dark.background} />
+                            <MaterialIcons name="local-fire-department" size={28} color="#0f0f0f" />
                         </View>
                         <View>
-                            <Text style={styles.highlightTitle}>Current Streak</Text>
+                            <Text style={[styles.highlightTitle, { color: c.text }]}>Current Streak</Text>
                             <Text style={styles.streakValue}>{streakDays} Day{streakDays !== 1 ? 's' : ''} Consistent</Text>
                         </View>
                     </View>
 
                     {favoriteExercise && (
-                        <View style={styles.favoriteCard}>
-                            <View style={styles.favoriteIcon}>
+                        <View style={[styles.favoriteCard, { backgroundColor: c.card, borderColor: c.border }]}>
+                            <View style={[styles.favoriteIcon, { backgroundColor: c.border }]}>
                                 <MaterialIcons name="favorite" size={28} color={Colors.primary} />
                             </View>
                             <View>
-                                <Text style={styles.highlightTitle}>Favorite Exercise</Text>
-                                <Text style={styles.favoriteValue}>{favoriteExercise.name} ({favoriteId![1]} sessions)</Text>
+                                <Text style={[styles.highlightTitle, { color: c.text }]}>Favorite Exercise</Text>
+                                <Text style={[styles.favoriteValue, { color: c.textSecondary }]}>{favoriteExercise.name} ({favoriteId![1]} sessions)</Text>
                             </View>
                         </View>
                     )}
                 </View>
 
                 {/* Weekly Volume Chart */}
-                <View style={styles.chartCard}>
-                    <Text style={styles.sectionTitle}>Weekly Volume</Text>
+                <View style={[styles.chartCard, { backgroundColor: c.card, borderColor: c.border }]}>
+                    <Text style={[styles.sectionTitle, { color: c.text }]}>Weekly Volume</Text>
                     <View style={styles.chartBars}>
                         {weeklyData.map((day, i) => {
                             const heightPct = day.volume > 0 ? (day.volume / maxWeeklyVol) * 100 : 0;
@@ -165,19 +167,19 @@ export default function StatisticsScreen() {
                                             backgroundColor: isActive ? Colors.primaryDark : Colors.primary,
                                         }
                                     ]} />
-                                    <Text style={[styles.barLabel, isActive && styles.barLabelActive]}>{day.label}</Text>
+                                    <Text style={[styles.barLabel, { color: c.textTertiary }, isActive && styles.barLabelActive]}>{day.label}</Text>
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
                     {weeklyData.every((d) => d.volume === 0) && (
-                        <Text style={styles.chartEmpty}>Complete a workout to see your weekly volume</Text>
+                        <Text style={[styles.chartEmpty, { color: c.textTertiary }]}>Complete a workout to see your weekly volume</Text>
                     )}
                 </View>
 
                 {/* Monthly Workouts Chart */}
-                <View style={styles.chartCard}>
-                    <Text style={styles.sectionTitle}>Monthly Workouts</Text>
+                <View style={[styles.chartCard, { backgroundColor: c.card, borderColor: c.border }]}>
+                    <Text style={[styles.sectionTitle, { color: c.text }]}>Monthly Workouts</Text>
                     <View style={styles.chartBars}>
                         {monthlyData.map((m, i) => {
                             const heightPct = m.count > 0 ? (m.count / maxMonthly) * 100 : 0;
@@ -193,13 +195,13 @@ export default function StatisticsScreen() {
                                             opacity: m.count > 0 ? 0.3 + (m.count / maxMonthly) * 0.7 : 0.1,
                                         }
                                     ]} />
-                                    <Text style={styles.barLabel}>{m.label}</Text>
+                                    <Text style={[styles.barLabel, { color: c.textTertiary }]}>{m.label}</Text>
                                 </View>
                             );
                         })}
                     </View>
                     {monthlyData.every((m) => m.count === 0) && (
-                        <Text style={styles.chartEmpty}>No workouts logged yet</Text>
+                        <Text style={[styles.chartEmpty, { color: c.textTertiary }]}>No workouts logged yet</Text>
                     )}
                 </View>
             </ScrollView>
@@ -208,7 +210,7 @@ export default function StatisticsScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm,
@@ -217,21 +219,20 @@ const styles = StyleSheet.create({
         width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight,
         alignItems: 'center', justifyContent: 'center',
     },
-    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold' },
     scrollContent: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
 
     statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.base, marginTop: Spacing.base },
     statCard: {
         width: '47%', gap: Spacing.sm, padding: Spacing.lg,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.lg, borderWidth: 1,
         shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1,
     },
-    statLabel: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
-    statValue: { fontSize: FontSize.xxl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    statLabel: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', textTransform: 'uppercase', letterSpacing: 1 },
+    statValue: { fontSize: FontSize.xxl, fontFamily: 'Lexend_700Bold' },
 
     highlights: { marginTop: Spacing.xxl },
-    sectionTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text, marginBottom: Spacing.base },
+    sectionTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', marginBottom: Spacing.base },
     streakCard: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.base,
         padding: Spacing.lg, borderRadius: BorderRadius.lg,
@@ -242,29 +243,27 @@ const styles = StyleSheet.create({
         width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.primary,
         alignItems: 'center', justifyContent: 'center',
     },
-    highlightTitle: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    highlightTitle: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold' },
     streakValue: { fontSize: FontSize.base, fontFamily: 'Lexend_600SemiBold', color: Colors.primary },
     favoriteCard: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.base,
-        padding: Spacing.lg, borderRadius: BorderRadius.lg,
-        backgroundColor: Colors.light.card, borderWidth: 1, borderColor: Colors.light.border,
+        padding: Spacing.lg, borderRadius: BorderRadius.lg, borderWidth: 1,
     },
     favoriteIcon: {
-        width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.light.border,
+        width: 48, height: 48, borderRadius: 24,
         alignItems: 'center', justifyContent: 'center',
     },
-    favoriteValue: { fontSize: FontSize.base, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary },
+    favoriteValue: { fontSize: FontSize.base, fontFamily: 'Lexend_400Regular' },
 
     chartCard: {
         marginTop: Spacing.xxl, padding: Spacing.lg,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.lg, borderWidth: 1,
         shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1,
     },
     chartBars: { flexDirection: 'row', justifyContent: 'space-between', height: 140, gap: Spacing.sm, alignItems: 'flex-end' },
     barWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' },
     bar: { width: '100%', backgroundColor: Colors.primary, borderTopLeftRadius: 4, borderTopRightRadius: 4, minHeight: 4 },
-    barLabel: { fontSize: 10, fontFamily: 'Lexend_500Medium', color: Colors.light.textTertiary, marginTop: 6, textTransform: 'uppercase' },
+    barLabel: { fontSize: 10, fontFamily: 'Lexend_500Medium', marginTop: 6, textTransform: 'uppercase' },
     barLabelActive: { color: Colors.primary, fontFamily: 'Lexend_700Bold' },
     barTooltip: {
         fontSize: 10, fontFamily: 'Lexend_700Bold', color: Colors.primary,
@@ -276,6 +275,6 @@ const styles = StyleSheet.create({
     },
     chartEmpty: {
         textAlign: 'center', marginTop: Spacing.base,
-        fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textTertiary,
+        fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular',
     },
 });

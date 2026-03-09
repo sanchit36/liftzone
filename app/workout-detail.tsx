@@ -6,23 +6,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useExerciseStore } from '../store/exerciseStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 export default function WorkoutDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
     const { workoutHistory } = useWorkoutStore();
     const { getExerciseById } = useExerciseStore();
+    const c = useThemeColors();
 
     const workout = workoutHistory.find((w) => w.id === id);
 
     if (!workout) {
         return (
-            <SafeAreaView style={s.container} edges={['top']}>
+            <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
                 <View style={s.header}>
                     <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
                         <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
                     </TouchableOpacity>
-                    <Text style={s.headerTitle}>Workout</Text>
+                    <Text style={[s.headerTitle, { color: c.text }]}>Workout</Text>
                     <View style={{ width: 40 }} />
                 </View>
                 <View style={s.empty}>
@@ -62,20 +64,20 @@ export default function WorkoutDetailScreen() {
                 <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
                     <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Workout Detail</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>Workout Detail</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
                 {/* Workout Title */}
                 <View style={s.titleSection}>
-                    <Text style={s.workoutName}>{workout.routineName}</Text>
+                    <Text style={[s.workoutName, { color: c.text }]}>{workout.routineName}</Text>
                     <Text style={s.workoutDate}>{formatDate(workout.startedAt)}</Text>
                     <Text style={s.workoutTime}>{formatTime(workout.startedAt)} – {formatTime(workout.endedAt)}</Text>
                 </View>
 
                 {/* Stats Summary */}
-                <View style={s.statsRow}>
+                <View style={[s.statsRow, { backgroundColor: c.card, borderColor: c.border }]}>
                     <View style={s.statItem}>
                         <MaterialIcons name="timer" size={20} color={Colors.primary} />
                         <Text style={s.statVal}>{durationStr}</Text>
@@ -102,7 +104,7 @@ export default function WorkoutDetailScreen() {
                 </View>
 
                 {/* Exercise Breakdown */}
-                <Text style={s.sectionTitle}>Exercises ({workout.exercises.length})</Text>
+                <Text style={[s.sectionTitle, { color: c.text }]}>Exercises ({workout.exercises.length})</Text>
                 {workout.exercises.map((we, exIdx) => {
                     const exercise = getExerciseById(we.exerciseId);
                     const exName = exercise?.name || 'Unknown Exercise';
@@ -112,7 +114,7 @@ export default function WorkoutDetailScreen() {
                         : null;
 
                     return (
-                        <View key={we.id} style={s.exerciseCard}>
+                        <View key={we.id} style={[s.exerciseCard, { backgroundColor: c.card, borderColor: c.border }]}>
                             <View style={s.exerciseHeader}>
                                 <View style={s.exerciseIcon}>
                                     <MaterialIcons name="fitness-center" size={20} color={Colors.primary} />
@@ -162,7 +164,7 @@ export default function WorkoutDetailScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,

@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { useWorkoutStore, CompletedWorkout } from '../store/workoutStore';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -16,6 +17,7 @@ export default function CalendarScreen() {
     const today = new Date();
     const [viewYear, setViewYear] = useState(today.getFullYear());
     const [viewMonth, setViewMonth] = useState(today.getMonth());
+    const c = useThemeColors();
     const [selectedDate, setSelectedDate] = useState<string | null>(
         `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
     );
@@ -99,12 +101,12 @@ export default function CalendarScreen() {
     }, [monthWorkouts]);
 
     return (
-        <SafeAreaView style={s.container} edges={['top']}>
+        <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
             <View style={s.header}>
                 <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-                    <MaterialIcons name="arrow-back" size={24} color={Colors.light.text} />
+                    <MaterialIcons name="arrow-back" size={24} color={c.text} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Calendar</Text>
+                <Text style={[s.headerTitle, { color: c.text }]}>Calendar</Text>
                 <TouchableOpacity onPress={() => {
                     setViewYear(today.getFullYear()); setViewMonth(today.getMonth());
                     setSelectedDate(`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`);
@@ -115,18 +117,18 @@ export default function CalendarScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
                 {/* Calendar Card */}
-                <View style={s.calCard}>
+                <View style={[s.calCard, { backgroundColor: c.card, borderColor: c.border }]}>
                     <View style={s.monthRow}>
                         <TouchableOpacity onPress={goToPrevMonth}>
-                            <MaterialIcons name="chevron-left" size={24} color={Colors.light.textSecondary} />
+                            <MaterialIcons name="chevron-left" size={24} color={c.textSecondary} />
                         </TouchableOpacity>
-                        <Text style={s.monthText}>{MONTH_NAMES[viewMonth]} {viewYear}</Text>
+                        <Text style={[s.monthText, { color: c.text }]}>{MONTH_NAMES[viewMonth]} {viewYear}</Text>
                         <TouchableOpacity onPress={goToNextMonth}>
-                            <MaterialIcons name="chevron-right" size={24} color={Colors.light.textSecondary} />
+                            <MaterialIcons name="chevron-right" size={24} color={c.textSecondary} />
                         </TouchableOpacity>
                     </View>
                     <View style={s.dayHeaders}>
-                        {DAY_LABELS.map((d, i) => <Text key={i} style={s.dayHeader}>{d}</Text>)}
+                        {DAY_LABELS.map((d, i) => <Text key={i} style={[s.dayHeader, { color: c.textTertiary }]}>{d}</Text>)}
                     </View>
                     <View style={s.grid}>
                         {calendarCells.map((day, i) => {
@@ -150,6 +152,7 @@ export default function CalendarScreen() {
                                         <>
                                             <Text style={[
                                                 s.dayNum,
+                                                { color: c.text },
                                                 isSelected && s.dayNumSelected,
                                                 isTodayCell && !isSelected && s.dayNumToday,
                                             ]}>{day}</Text>
@@ -165,27 +168,27 @@ export default function CalendarScreen() {
                 </View>
 
                 {/* Month Summary */}
-                <View style={s.summaryRow}>
+                <View style={[s.summaryRow, { backgroundColor: c.card, borderColor: c.border }]}>
                     <View style={s.summaryItem}>
                         <Text style={s.summaryVal}>{monthStats.count}</Text>
-                        <Text style={s.summaryLabel}>Workouts</Text>
+                        <Text style={[s.summaryLabel, { color: c.textSecondary }]}>Workouts</Text>
                     </View>
-                    <View style={s.summaryDivider} />
+                    <View style={[s.summaryDivider, { backgroundColor: c.border }]} />
                     <View style={s.summaryItem}>
                         <Text style={s.summaryVal}>{monthStats.hours}</Text>
-                        <Text style={s.summaryLabel}>Hours</Text>
+                        <Text style={[s.summaryLabel, { color: c.textSecondary }]}>Hours</Text>
                     </View>
-                    <View style={s.summaryDivider} />
+                    <View style={[s.summaryDivider, { backgroundColor: c.border }]} />
                     <View style={s.summaryItem}>
                         <Text style={s.summaryVal}>{monthStats.sets}</Text>
-                        <Text style={s.summaryLabel}>Sets</Text>
+                        <Text style={[s.summaryLabel, { color: c.textSecondary }]}>Sets</Text>
                     </View>
                 </View>
 
                 {/* Workouts for selected day */}
                 <View style={s.workoutsSection}>
                     <View style={s.workoutsSectionHeader}>
-                        <Text style={s.workoutsTitle}>
+                        <Text style={[s.workoutsTitle, { color: c.text }]}>
                             {selectedDayNum
                                 ? `${MONTH_NAMES[viewMonth].slice(0, 3)} ${selectedDayNum}`
                                 : 'Select a day'}
@@ -199,18 +202,18 @@ export default function CalendarScreen() {
                     {selectedWorkouts.length > 0 ? (
                         <View style={s.workoutCards}>
                             {selectedWorkouts.map((w) => (
-                                <TouchableOpacity key={w.id} style={s.wCard} onPress={() => router.push(`/workout-detail?id=${w.id}` as any)}>
+                                <TouchableOpacity key={w.id} style={[s.wCard, { backgroundColor: c.card, borderColor: c.border }]} onPress={() => router.push(`/workout-detail?id=${w.id}` as any)}>
                                     <View style={s.wIcon}>
                                         <MaterialIcons name="fitness-center" size={24} color={Colors.primary} />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={s.wName}>{w.routineName}</Text>
-                                        <Text style={s.wMeta}>
+                                        <Text style={[s.wName, { color: c.text }]}>{w.routineName}</Text>
+                                        <Text style={[s.wMeta, { color: c.textSecondary }]}>
                                             {durationStr(w.startedAt, w.endedAt)} • {w.exercises.length} exercise{w.exercises.length !== 1 ? 's' : ''} • {totalVolume(w.exercises)} vol
                                         </Text>
                                     </View>
                                     <View style={{ alignItems: 'flex-end', gap: 4 }}>
-                                        <Text style={s.wTime}>{formatTime(w.startedAt)}</Text>
+                                        <Text style={[s.wTime, { color: c.textTertiary }]}>{formatTime(w.startedAt)}</Text>
                                         <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
                                     </View>
                                 </TouchableOpacity>
@@ -218,8 +221,8 @@ export default function CalendarScreen() {
                         </View>
                     ) : (
                         <View style={s.restDay}>
-                            <MaterialIcons name="self-improvement" size={32} color={Colors.light.textTertiary} />
-                            <Text style={s.restText}>{selectedDate ? 'Rest Day' : 'Tap a date to see workouts'}</Text>
+                            <MaterialIcons name="self-improvement" size={32} color={c.textTertiary} />
+                            <Text style={[s.restText, { color: c.textTertiary }]}>{selectedDate ? 'Rest Day' : 'Tap a date to see workouts'}</Text>
                         </View>
                     )}
                 </View>
@@ -229,50 +232,49 @@ export default function CalendarScreen() {
 }
 
 const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.base, paddingVertical: Spacing.lg },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold' },
     todayBtn: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.primary },
     scroll: { paddingHorizontal: Spacing.base, paddingBottom: 40 },
 
-    calCard: { backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg, padding: Spacing.base, borderWidth: 1, borderColor: Colors.light.border },
+    calCard: { borderRadius: BorderRadius.lg, padding: Spacing.base, borderWidth: 1 },
     monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg, paddingHorizontal: Spacing.sm },
-    monthText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    monthText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold' },
     dayHeaders: { flexDirection: 'row', marginBottom: Spacing.sm },
-    dayHeader: { flex: 1, textAlign: 'center', fontSize: FontSize.xs, fontFamily: 'Lexend_600SemiBold', color: Colors.light.textTertiary, textTransform: 'uppercase' },
+    dayHeader: { flex: 1, textAlign: 'center', fontSize: FontSize.xs, fontFamily: 'Lexend_600SemiBold', textTransform: 'uppercase' },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
     dayCell: { width: '14.28%', height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, position: 'relative' },
     dayCellSelected: { backgroundColor: Colors.primary },
     dayCellToday: { borderWidth: 2, borderColor: Colors.primary },
-    dayNum: { fontSize: FontSize.sm, fontFamily: 'Lexend_500Medium', color: Colors.light.text },
-    dayNumSelected: { color: Colors.dark.background, fontFamily: 'Lexend_700Bold' },
+    dayNum: { fontSize: FontSize.sm, fontFamily: 'Lexend_500Medium' },
+    dayNumSelected: { color: '#000', fontFamily: 'Lexend_700Bold' },
     dayNumToday: { color: Colors.primary, fontFamily: 'Lexend_700Bold' },
     dot: { position: 'absolute', bottom: 4, width: 5, height: 5, borderRadius: 2.5, backgroundColor: Colors.primary },
-    dotSelected: { backgroundColor: Colors.dark.background },
+    dotSelected: { backgroundColor: '#000' },
 
     summaryRow: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
         marginTop: Spacing.base, paddingVertical: Spacing.base,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.lg, borderWidth: 1,
     },
     summaryItem: { alignItems: 'center' },
     summaryVal: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.primary },
-    summaryLabel: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary, marginTop: 2 },
-    summaryDivider: { width: 1, height: 32, backgroundColor: Colors.light.border },
+    summaryLabel: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', marginTop: 2 },
+    summaryDivider: { width: 1, height: 32 },
 
     workoutsSection: { marginTop: Spacing.xxl },
     workoutsSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.base },
-    workoutsTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    workoutsTitle: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold' },
     badge: { backgroundColor: Colors.primaryLight, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: BorderRadius.full },
     badgeText: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.primary },
     workoutCards: { gap: Spacing.base },
-    wCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.base, backgroundColor: Colors.light.card, padding: Spacing.base, borderRadius: BorderRadius.lg, borderWidth: 1, borderColor: Colors.light.border },
+    wCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.base, padding: Spacing.base, borderRadius: BorderRadius.lg, borderWidth: 1 },
     wIcon: { width: 48, height: 48, borderRadius: BorderRadius.sm, backgroundColor: Colors.primaryMedium, alignItems: 'center', justifyContent: 'center' },
-    wName: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
-    wMeta: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary },
-    wTime: { fontSize: 10, fontFamily: 'Lexend_700Bold', color: Colors.light.textTertiary },
+    wName: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold' },
+    wMeta: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular' },
+    wTime: { fontSize: 10, fontFamily: 'Lexend_700Bold' },
     restDay: { alignItems: 'center', paddingVertical: Spacing.xxl, gap: Spacing.sm },
-    restText: { fontSize: FontSize.base, fontFamily: 'Lexend_500Medium', color: Colors.light.textTertiary },
+    restText: { fontSize: FontSize.base, fontFamily: 'Lexend_500Medium' },
 });

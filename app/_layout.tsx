@@ -23,6 +23,8 @@ export default function RootLayout() {
         Lexend_700Bold,
     });
     const [dbReady, setDbReady] = useState(false);
+    const darkMode = useSettingsStore((s) => s.darkMode);
+    const themeColors = darkMode ? Colors.dark : Colors.light;
 
     useEffect(() => {
         try {
@@ -55,11 +57,11 @@ export default function RootLayout() {
 
     return (
         <>
-            <StatusBar style="dark" />
+            <StatusBar style={darkMode ? 'light' : 'dark'} />
             <Stack
                 screenOptions={{
                     headerShown: false,
-                    contentStyle: { backgroundColor: Colors.light.background },
+                    contentStyle: { backgroundColor: themeColors.background },
                     animation: 'slide_from_right',
                 }}
             >
