@@ -15,31 +15,20 @@ export default function CreateRoutineScreen() {
     const [name, setName] = useState('');
     const c = useThemeColors();
 
-    // Clear draft on mount
-    useEffect(() => {
-        clearDraft();
-    }, []);
+    useEffect(() => { clearDraft(); }, []);
 
     const handleSave = () => {
         if (!name.trim()) { Alert.alert('Name Required', 'Please enter a routine name.'); return; }
         if (draftExerciseIds.length === 0) { Alert.alert('No Exercises', 'Add at least one exercise.'); return; }
-        addRoutine({
-            id: `rt-${Date.now()}`,
-            name: name.trim(),
-            exerciseIds: draftExerciseIds,
-            createdAt: Date.now(),
-        });
+        addRoutine({ id: `rt-${Date.now()}`, name: name.trim(), exerciseIds: draftExerciseIds, createdAt: Date.now() });
         clearDraft();
         router.back();
     };
 
-    const handleAddExercises = () => {
-        router.push('/add-exercises?mode=routine');
-    };
+    const handleAddExercises = () => { router.push('/add-exercises?mode=routine'); };
 
     return (
         <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
-            {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => { clearDraft(); router.back(); }}>
                     <MaterialIcons name="close" size={24} color={c.text} />
@@ -50,10 +39,9 @@ export default function CreateRoutineScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Name Input */}
             <View style={s.nameWrap}>
                 <TextInput
-                    style={s.nameInput}
+                    style={[s.nameInput, { backgroundColor: c.card, color: c.text, borderColor: c.border }]}
                     placeholder="Routine Name"
                     placeholderTextColor={c.textTertiary}
                     value={name}
@@ -62,20 +50,18 @@ export default function CreateRoutineScreen() {
                 />
             </View>
 
-            {/* Exercise Count */}
             {draftExerciseIds.length > 0 && (
                 <Text style={s.countText}>{draftExerciseIds.length} exercise{draftExerciseIds.length > 1 ? 's' : ''} added</Text>
             )}
 
-            {/* Exercise List or Empty State */}
             <ScrollView style={s.list} contentContainerStyle={s.listContent} showsVerticalScrollIndicator={false}>
                 {draftExerciseIds.length === 0 ? (
                     <View style={s.empty}>
-                        <View style={s.emptyIcon}>
-                            <MaterialIcons name="fitness-center" size={48} color={Colors.light.textTertiary} />
+                        <View style={[s.emptyIcon, { backgroundColor: c.border }]}>
+                            <MaterialIcons name="fitness-center" size={48} color={c.textTertiary} />
                         </View>
-                        <Text style={s.emptyTitle}>No exercises yet</Text>
-                        <Text style={s.emptySubtitle}>Tap the button below to add exercises to your routine</Text>
+                        <Text style={[s.emptyTitle, { color: c.textSecondary }]}>No exercises yet</Text>
+                        <Text style={[s.emptySubtitle, { color: c.textTertiary }]}>Tap the button below to add exercises to your routine</Text>
                     </View>
                 ) : (
                     draftExerciseIds.map((exId, index) => {
@@ -88,10 +74,10 @@ export default function CreateRoutineScreen() {
                                 </View>
                                 <View style={s.exInfo}>
                                     <Text style={[s.exName, { color: c.text }]}>{ex.name}</Text>
-                                    <Text style={s.exMeta}>{ex.muscleGroup} • {ex.equipment}</Text>
+                                    <Text style={[s.exMeta, { color: c.textSecondary }]}>{ex.muscleGroup} • {ex.equipment}</Text>
                                 </View>
                                 <TouchableOpacity style={s.removeBtn} onPress={() => removeFromDraft(exId)}>
-                                    <MaterialIcons name="close" size={18} color={Colors.light.textTertiary} />
+                                    <MaterialIcons name="close" size={18} color={c.textTertiary} />
                                 </TouchableOpacity>
                             </View>
                         );
@@ -99,10 +85,9 @@ export default function CreateRoutineScreen() {
                 )}
             </ScrollView>
 
-            {/* Bottom: Add Exercises Button */}
-            <View style={s.bottomBar}>
+            <View style={[s.bottomBar, { backgroundColor: c.background, borderTopColor: c.border }]}>
                 <TouchableOpacity style={s.addBtn} activeOpacity={0.8} onPress={handleAddExercises}>
-                    <MaterialIcons name="add-circle" size={22} color={Colors.dark.background} />
+                    <MaterialIcons name="add-circle" size={22} color="#000" />
                     <Text style={s.addBtnText}>Add Exercises</Text>
                 </TouchableOpacity>
             </View>
@@ -113,15 +98,14 @@ export default function CreateRoutineScreen() {
 const s = StyleSheet.create({
     container: { flex: 1 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.base },
-    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
+    headerTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold' },
     saveBtn: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.primary },
     saveBtnDisabled: { opacity: 0.4 },
 
     nameWrap: { paddingHorizontal: Spacing.base, marginBottom: Spacing.base },
     nameInput: {
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg, padding: Spacing.base,
-        fontSize: FontSize.lg, fontFamily: 'Lexend_600SemiBold', color: Colors.light.text,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.lg, padding: Spacing.base,
+        fontSize: FontSize.lg, fontFamily: 'Lexend_600SemiBold', borderWidth: 1,
     },
 
     countText: {
@@ -134,20 +118,19 @@ const s = StyleSheet.create({
 
     empty: { alignItems: 'center', paddingTop: 80 },
     emptyIcon: {
-        width: 88, height: 88, borderRadius: 44, backgroundColor: Colors.light.border,
+        width: 88, height: 88, borderRadius: 44,
         alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xl,
     },
-    emptyTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.textSecondary, marginBottom: Spacing.sm },
+    emptyTitle: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', marginBottom: Spacing.sm },
     emptySubtitle: {
-        fontSize: FontSize.md, fontFamily: 'Lexend_400Regular', color: Colors.light.textTertiary,
+        fontSize: FontSize.md, fontFamily: 'Lexend_400Regular',
         textAlign: 'center', paddingHorizontal: Spacing.xxl, lineHeight: 22,
     },
 
     exRow: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
         paddingVertical: Spacing.md, paddingHorizontal: Spacing.sm,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.sm,
-        borderWidth: 1, borderColor: Colors.light.border, marginBottom: Spacing.sm,
+        borderRadius: BorderRadius.sm, borderWidth: 1, marginBottom: Spacing.sm,
     },
     exIndex: {
         width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primaryLight,
@@ -155,20 +138,19 @@ const s = StyleSheet.create({
     },
     exIndexText: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.primary },
     exInfo: { flex: 1 },
-    exName: { fontSize: FontSize.base, fontFamily: 'Lexend_600SemiBold', color: Colors.light.text },
-    exMeta: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary, textTransform: 'capitalize', marginTop: 2 },
+    exName: { fontSize: FontSize.base, fontFamily: 'Lexend_600SemiBold' },
+    exMeta: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', textTransform: 'capitalize', marginTop: 2 },
     removeBtn: { padding: Spacing.sm },
 
     bottomBar: {
         paddingHorizontal: Spacing.base, paddingTop: Spacing.base,
         paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-        backgroundColor: Colors.light.background,
-        borderTopWidth: 1, borderTopColor: 'rgba(19,236,106,0.1)',
+        borderTopWidth: 1,
     },
     addBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
         paddingVertical: Spacing.base, borderRadius: BorderRadius.lg, backgroundColor: Colors.primary,
         shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
     },
-    addBtnText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.dark.background },
+    addBtnText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: '#000' },
 });

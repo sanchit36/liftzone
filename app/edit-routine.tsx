@@ -9,16 +9,8 @@ import { useRoutineStore } from '../store/routineStore';
 import { useWorkoutStore, RoutineExerciseTemplate } from '../store/workoutStore';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-interface EditableSet {
-    weight: string;
-    reps: string;
-}
-
-interface EditableExercise {
-    exerciseId: string;
-    sets: EditableSet[];
-    restTimer: string; // seconds as string for easier TextInput
-}
+interface EditableSet { weight: string; reps: string; }
+interface EditableExercise { exerciseId: string; sets: EditableSet[]; restTimer: string; }
 
 export default function EditRoutineScreen() {
     const router = useRouter();
@@ -32,38 +24,23 @@ export default function EditRoutineScreen() {
     const [name, setName] = useState(routine?.name || '');
     const [exercises, setExercises] = useState<EditableExercise[]>([]);
 
-    // Initialize exercises with template data or previous workout data
     useEffect(() => {
         if (!routine) return;
         const templates = routine.exerciseTemplates || [];
         const initial: EditableExercise[] = routine.exerciseIds.map((exId) => {
             const template = templates.find((t) => t.exerciseId === exId);
             if (template) {
-                return {
-                    exerciseId: exId,
-                    sets: template.sets.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })),
-                    restTimer: String(template.restTimer),
-                };
+                return { exerciseId: exId, sets: template.sets.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })), restTimer: String(template.restTimer) };
             }
-            // Try previous workout data
             const prev = getPreviousSets(exId);
             if (prev && prev.length > 0) {
-                return {
-                    exerciseId: exId,
-                    sets: prev.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })),
-                    restTimer: '0',
-                };
+                return { exerciseId: exId, sets: prev.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })), restTimer: '0' };
             }
-            return {
-                exerciseId: exId,
-                sets: [{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }],
-                restTimer: '0',
-            };
+            return { exerciseId: exId, sets: [{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }], restTimer: '0' };
         });
         setExercises(initial);
     }, [routine?.id]);
 
-    // When returning from add-exercises, merge new draft exercises
     useEffect(() => {
         if (draftExerciseIds.length > 0) {
             const currentIds = exercises.map((e) => e.exerciseId);
@@ -72,21 +49,11 @@ export default function EditRoutineScreen() {
                 .map((id) => {
                     const prev = getPreviousSets(id);
                     if (prev && prev.length > 0) {
-                        return {
-                            exerciseId: id,
-                            sets: prev.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })),
-                            restTimer: '0',
-                        };
+                        return { exerciseId: id, sets: prev.map((s) => ({ weight: String(s.weight || ''), reps: String(s.reps || '') })), restTimer: '0' };
                     }
-                    return {
-                        exerciseId: id,
-                        sets: [{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }],
-                        restTimer: '0',
-                    };
+                    return { exerciseId: id, sets: [{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }], restTimer: '0' };
                 });
-            if (newExercises.length > 0) {
-                setExercises((prev) => [...prev, ...newExercises]);
-            }
+            if (newExercises.length > 0) setExercises((prev) => [...prev, ...newExercises]);
             clearDraft();
         }
     }, [draftExerciseIds]);
@@ -95,7 +62,7 @@ export default function EditRoutineScreen() {
         return (
             <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
                 <View style={s.emptyState}>
-                    <Text style={s.emptyText}>Routine not found</Text>
+                    <Text style={[s.emptyText, { color: c.textSecondary }]}>Routine not found</Text>
                 </View>
             </SafeAreaView>
         );
@@ -108,23 +75,12 @@ export default function EditRoutineScreen() {
             sets: e.sets.map((s) => ({ weight: parseFloat(s.weight) || 0, reps: parseInt(s.reps) || 0 })),
             restTimer: parseInt(e.restTimer)
         }));
-        updateRoutine(routine.id, {
-            name: name.trim(),
-            exerciseIds: exercises.map((e) => e.exerciseId),
-            exerciseTemplates,
-        });
+        updateRoutine(routine.id, { name: name.trim(), exerciseIds: exercises.map((e) => e.exerciseId), exerciseTemplates });
         router.back();
     };
 
-    const handleAddExercises = () => {
-        clearDraft();
-        router.push('/add-exercises?mode=routine');
-    };
-
-    const handleRemoveExercise = (exerciseId: string) => {
-        setExercises((prev) => prev.filter((e) => e.exerciseId !== exerciseId));
-    };
-
+    const handleAddExercises = () => { clearDraft(); router.push('/add-exercises?mode=routine'); };
+    const handleRemoveExercise = (exerciseId: string) => { setExercises((prev) => prev.filter((e) => e.exerciseId !== exerciseId)); };
     const handleAddSet = (exerciseId: string) => {
         setExercises((prev) => prev.map((e) => {
             if (e.exerciseId !== exerciseId) return e;
@@ -132,40 +88,30 @@ export default function EditRoutineScreen() {
             return { ...e, sets: [...e.sets, { weight: lastSet?.weight || '', reps: lastSet?.reps || '' }] };
         }));
     };
-
     const handleRemoveSet = (exerciseId: string, setIndex: number) => {
         setExercises((prev) => prev.map((e) => {
             if (e.exerciseId !== exerciseId || e.sets.length <= 1) return e;
             return { ...e, sets: e.sets.filter((_, i) => i !== setIndex) };
         }));
     };
-
     const handleSetChange = (exerciseId: string, setIndex: number, field: 'weight' | 'reps', value: string) => {
         setExercises((prev) => prev.map((e) => {
             if (e.exerciseId !== exerciseId) return e;
             return { ...e, sets: e.sets.map((s, i) => i === setIndex ? { ...s, [field]: value } : s) };
         }));
     };
-
     const handleRestTimerChange = (exerciseId: string, value: string) => {
         setExercises((prev) => prev.map((e) => e.exerciseId === exerciseId ? { ...e, restTimer: value } : e));
     };
-
     const handleDeleteRoutine = () => {
         Alert.alert('Delete Routine', `Delete "${routine.name}" permanently?`, [
             { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Delete', style: 'destructive', onPress: () => {
-                    useRoutineStore.getState().removeRoutine(routine.id);
-                    router.back();
-                }
-            },
+            { text: 'Delete', style: 'destructive', onPress: () => { useRoutineStore.getState().removeRoutine(routine.id); router.back(); } },
         ]);
     };
 
     return (
         <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
-            {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
                     <MaterialIcons name="arrow-back" size={24} color={c.text} />
@@ -176,7 +122,6 @@ export default function EditRoutineScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Routine Name */}
             <View style={s.nameWrap}>
                 <TextInput
                     style={[s.nameInput, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
@@ -187,7 +132,6 @@ export default function EditRoutineScreen() {
                 />
             </View>
 
-            {/* Exercise Blocks */}
             <ScrollView style={s.scrollView} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 {exercises.map((re, index) => {
                     const ex = getExerciseById(re.exerciseId);
@@ -195,7 +139,6 @@ export default function EditRoutineScreen() {
 
                     return (
                         <View key={re.exerciseId} style={[s.exerciseBlock, { borderBottomColor: c.border }]}>
-                            {/* Exercise Header */}
                             <View style={s.exerciseHeader}>
                                 <View style={s.exerciseLeft}>
                                     <View style={s.exerciseIndex}>
@@ -203,7 +146,7 @@ export default function EditRoutineScreen() {
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text style={[s.exerciseName, { color: c.text }]}>{ex.name}</Text>
-                                        <Text style={s.exerciseMuscle}>{ex.muscleGroup} • {ex.equipment}</Text>
+                                        <Text style={[s.exerciseMuscle, { color: c.textSecondary }]}>{ex.muscleGroup} • {ex.equipment}</Text>
                                     </View>
                                 </View>
                                 <TouchableOpacity style={s.removeExBtn} onPress={() => handleRemoveExercise(re.exerciseId)}>
@@ -212,57 +155,57 @@ export default function EditRoutineScreen() {
                             </View>
 
                             {/* Rest Timer */}
-                            <View style={s.restTimerRow}>
-                                <MaterialIcons name="timer" size={16} color={Colors.light.textSecondary} />
-                                <Text style={s.restLabel}>Rest</Text>
+                            <View style={[s.restTimerRow, { backgroundColor: c.card, borderColor: c.border }]}>
+                                <MaterialIcons name="timer" size={16} color={c.textSecondary} />
+                                <Text style={[s.restLabel, { color: c.textSecondary }]}>Rest</Text>
                                 <TextInput
-                                    style={s.restInput}
+                                    style={[s.restInput, { color: c.text, backgroundColor: c.background, borderColor: c.border }]}
                                     value={re.restTimer}
                                     onChangeText={(v) => handleRestTimerChange(re.exerciseId, v)}
                                     keyboardType="number-pad"
                                     maxLength={3}
                                 />
-                                <Text style={s.restUnit}>sec</Text>
+                                <Text style={[s.restUnit, { color: c.textTertiary }]}>sec</Text>
                             </View>
 
                             {/* Set Column Headers */}
                             <View style={s.setHeaders}>
-                                <Text style={[s.setHeaderText, { width: 36 }]}>SET</Text>
-                                <Text style={[s.setHeaderText, { flex: 1, textAlign: 'center' }]}>KG</Text>
-                                <Text style={[s.setHeaderText, { flex: 1, textAlign: 'center' }]}>REPS</Text>
+                                <Text style={[s.setHeaderText, { width: 36, color: c.textTertiary }]}>SET</Text>
+                                <Text style={[s.setHeaderText, { flex: 1, textAlign: 'center', color: c.textTertiary }]}>KG</Text>
+                                <Text style={[s.setHeaderText, { flex: 1, textAlign: 'center', color: c.textTertiary }]}>REPS</Text>
                                 <View style={{ width: 28 }} />
                             </View>
 
                             {/* Set Rows */}
                             {re.sets.map((set, si) => (
-                                <View key={si} style={s.setRow}>
-                                    <Text style={s.setNum}>{si + 1}</Text>
+                                <View key={si} style={[s.setRow, { backgroundColor: c.card, borderColor: c.border }]}>
+                                    <Text style={[s.setNum, { color: c.textTertiary }]}>{si + 1}</Text>
                                     <TextInput
-                                        style={s.setInput}
+                                        style={[s.setInput, { color: c.text, backgroundColor: c.background, borderColor: c.border }]}
                                         value={set.weight}
                                         onChangeText={(v) => handleSetChange(re.exerciseId, si, 'weight', v)}
                                         keyboardType="decimal-pad"
                                         placeholder="0"
-                                        placeholderTextColor={Colors.light.textTertiary}
+                                        placeholderTextColor={c.textTertiary}
                                     />
                                     <TextInput
-                                        style={s.setInput}
+                                        style={[s.setInput, { color: c.text, backgroundColor: c.background, borderColor: c.border }]}
                                         value={set.reps}
                                         onChangeText={(v) => handleSetChange(re.exerciseId, si, 'reps', v)}
                                         keyboardType="number-pad"
                                         placeholder="0"
-                                        placeholderTextColor={Colors.light.textTertiary}
+                                        placeholderTextColor={c.textTertiary}
                                     />
                                     <TouchableOpacity style={s.removeSetBtn} onPress={() => handleRemoveSet(re.exerciseId, si)}>
-                                        <MaterialIcons name="remove-circle-outline" size={18} color={Colors.light.textTertiary} />
+                                        <MaterialIcons name="remove-circle-outline" size={18} color={c.textTertiary} />
                                     </TouchableOpacity>
                                 </View>
                             ))}
 
                             {/* Add Set */}
-                            <TouchableOpacity style={s.addSetBtn} onPress={() => handleAddSet(re.exerciseId)}>
-                                <MaterialIcons name="add" size={18} color={Colors.light.text} />
-                                <Text style={s.addSetText}>Add Set</Text>
+                            <TouchableOpacity style={[s.addSetBtn, { backgroundColor: c.borderDark }]} onPress={() => handleAddSet(re.exerciseId)}>
+                                <MaterialIcons name="add" size={18} color={c.text} />
+                                <Text style={[s.addSetText, { color: c.text }]}>Add Set</Text>
                             </TouchableOpacity>
                         </View>
                     );
@@ -270,14 +213,13 @@ export default function EditRoutineScreen() {
 
                 {exercises.length === 0 && (
                     <View style={s.noExercises}>
-                        <MaterialIcons name="fitness-center" size={48} color={Colors.light.textTertiary} />
-                        <Text style={s.noExercisesText}>No exercises. Add some below!</Text>
+                        <MaterialIcons name="fitness-center" size={48} color={c.textTertiary} />
+                        <Text style={[s.noExercisesText, { color: c.textSecondary }]}>No exercises. Add some below!</Text>
                     </View>
                 )}
             </ScrollView>
 
-            {/* Bottom Actions */}
-            <View style={s.bottomActions}>
+            <View style={[s.bottomActions, { backgroundColor: c.background, borderTopColor: c.border }]}>
                 <TouchableOpacity style={s.addExerciseBtn} onPress={handleAddExercises}>
                     <MaterialIcons name="add-circle" size={22} color={Colors.primary} />
                     <Text style={s.addExerciseBtnText}>Add Exercises</Text>
@@ -293,7 +235,7 @@ export default function EditRoutineScreen() {
 const s = StyleSheet.create({
     container: { flex: 1 },
     emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.base, color: Colors.light.textSecondary },
+    emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.base },
 
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -305,73 +247,61 @@ const s = StyleSheet.create({
 
     nameWrap: { paddingHorizontal: Spacing.base, marginBottom: Spacing.sm },
     nameInput: {
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg, padding: Spacing.base,
-        fontSize: FontSize.lg, fontFamily: 'Lexend_600SemiBold', color: Colors.light.text,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.lg, padding: Spacing.base,
+        fontSize: FontSize.lg, fontFamily: 'Lexend_600SemiBold', borderWidth: 1,
     },
 
     scrollView: { flex: 1 },
     scrollContent: { paddingBottom: 200 },
 
-    exerciseBlock: { paddingHorizontal: Spacing.base, paddingTop: Spacing.xl, borderBottomWidth: 1, borderBottomColor: Colors.light.border, paddingBottom: Spacing.xl },
+    exerciseBlock: { paddingHorizontal: Spacing.base, paddingTop: Spacing.xl, borderBottomWidth: 1, paddingBottom: Spacing.xl },
     exerciseHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
     exerciseLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
-    exerciseIndex: {
-        width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primaryLight,
-        alignItems: 'center', justifyContent: 'center',
-    },
+    exerciseIndex: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
     exerciseIndexText: { fontSize: FontSize.sm, fontFamily: 'Lexend_700Bold', color: Colors.primary },
-    exerciseName: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
-    exerciseMuscle: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary, textTransform: 'capitalize', marginTop: 2 },
+    exerciseName: { fontSize: FontSize.lg, fontFamily: 'Lexend_700Bold' },
+    exerciseMuscle: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', textTransform: 'capitalize', marginTop: 2 },
     removeExBtn: { padding: Spacing.sm },
 
     restTimerRow: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.sm,
-        padding: Spacing.sm, marginBottom: Spacing.md,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.sm, padding: Spacing.sm, marginBottom: Spacing.md, borderWidth: 1,
     },
-    restLabel: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.sm, color: Colors.light.textSecondary },
+    restLabel: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.sm },
     restInput: {
         width: 52, textAlign: 'center', fontFamily: 'Lexend_700Bold', fontSize: FontSize.base,
-        color: Colors.light.text, backgroundColor: Colors.light.background,
-        borderRadius: BorderRadius.sm, padding: 4, borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.sm, padding: 4, borderWidth: 1,
     },
-    restUnit: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.sm, color: Colors.light.textTertiary },
+    restUnit: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.sm },
 
     setHeaders: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, marginBottom: Spacing.sm },
-    setHeaderText: { fontSize: 10, fontFamily: 'Lexend_700Bold', color: Colors.light.textTertiary, textTransform: 'uppercase', letterSpacing: 1.5, width: 40 },
+    setHeaderText: { fontSize: 10, fontFamily: 'Lexend_700Bold', textTransform: 'uppercase', letterSpacing: 1.5, width: 40 },
 
     setRow: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.sm,
-        padding: Spacing.sm, marginBottom: Spacing.sm,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.sm, padding: Spacing.sm, marginBottom: Spacing.sm, borderWidth: 1,
     },
-    setNum: { width: 36, textAlign: 'center', fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: Colors.light.textTertiary },
+    setNum: { width: 36, textAlign: 'center', fontFamily: 'Lexend_700Bold', fontSize: FontSize.base },
     setInput: {
         flex: 1, textAlign: 'center', fontFamily: 'Lexend_600SemiBold', fontSize: FontSize.base,
-        color: Colors.light.text, backgroundColor: Colors.light.background,
-        borderRadius: BorderRadius.sm, paddingVertical: 8, paddingHorizontal: 4,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.sm, paddingVertical: 8, paddingHorizontal: 4, borderWidth: 1,
     },
     removeSetBtn: { width: 28, alignItems: 'center' },
 
     addSetBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
         marginTop: Spacing.sm, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg,
-        backgroundColor: Colors.light.borderDark,
     },
-    addSetText: { fontFamily: 'Lexend_600SemiBold', fontSize: FontSize.sm, color: Colors.light.text },
+    addSetText: { fontFamily: 'Lexend_600SemiBold', fontSize: FontSize.sm },
 
     noExercises: { alignItems: 'center', paddingTop: 80, gap: Spacing.base },
-    noExercisesText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.md, color: Colors.light.textSecondary },
+    noExercisesText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.md },
 
     bottomActions: {
         flexDirection: 'row', gap: Spacing.md,
         paddingHorizontal: Spacing.base, paddingTop: Spacing.base,
         paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-        backgroundColor: Colors.light.background, borderTopWidth: 1, borderTopColor: 'rgba(19,236,106,0.1)',
+        borderTopWidth: 1,
     },
     addExerciseBtn: {
         flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,

@@ -49,23 +49,15 @@ export default function AddExercisesScreen() {
             router.back();
             return;
         }
-        // Workout mode: add each selected exercise to the active workout
         selectedIds.forEach((id) => addExerciseToWorkout(id));
         router.back();
     };
 
-    const clearFilters = () => {
-        setSelectedMuscle(null);
-        setSelectedEquipment(null);
-        setSelectedCategory(null);
-        setQuery('');
-    };
-
+    const clearFilters = () => { setSelectedMuscle(null); setSelectedEquipment(null); setSelectedCategory(null); setQuery(''); };
     const hasFilters = selectedMuscle || selectedEquipment || selectedCategory || query.trim();
 
     return (
         <SafeAreaView style={[s.container, { backgroundColor: c.background }]} edges={['top']}>
-            {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
                     <MaterialIcons name="close" size={24} color={c.text} />
@@ -74,107 +66,81 @@ export default function AddExercisesScreen() {
                 <View style={{ width: 40 }} />
             </View>
 
-            {/* Search */}
             <View style={s.searchWrap}>
-                <View style={s.searchBox}>
-                    <MaterialIcons name="search" size={20} color={query ? Colors.primary : Colors.light.textTertiary} />
+                <View style={[s.searchBox, { backgroundColor: c.card, borderColor: c.border }]}>
+                    <MaterialIcons name="search" size={20} color={query ? Colors.primary : c.textTertiary} />
                     <TextInput
-                        style={s.searchInput}
+                        style={[s.searchInput, { color: c.text }]}
                         placeholder="Search exercises..."
-                        placeholderTextColor={Colors.light.textTertiary}
+                        placeholderTextColor={c.textTertiary}
                         value={query}
                         onChangeText={setQuery}
                         autoCorrect={false}
                     />
                     {query.length > 0 && (
                         <TouchableOpacity onPress={() => setQuery('')}>
-                            <MaterialIcons name="close" size={18} color={Colors.light.textTertiary} />
+                            <MaterialIcons name="close" size={18} color={c.textTertiary} />
                         </TouchableOpacity>
                     )}
                 </View>
             </View>
 
-            {/* Filter: Body Part */}
             <View style={s.filterSection}>
-                <Text style={s.filterLabel}>BODY PART</Text>
+                <Text style={[s.filterLabel, { color: c.textTertiary }]}>BODY PART</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
                     {ALL_MUSCLES.map((m) => (
-                        <TouchableOpacity
-                            key={m}
-                            style={[s.chip, selectedMuscle === m && s.chipActive]}
-                            onPress={() => setSelectedMuscle(selectedMuscle === m ? null : m)}
-                        >
-                            <Text style={[s.chipText, selectedMuscle === m && s.chipTextActive]}>
-                                {MUSCLE_GROUP_LABELS[m]}
-                            </Text>
+                        <TouchableOpacity key={m} style={[s.chip, { backgroundColor: c.card, borderColor: c.borderDark }, selectedMuscle === m && s.chipActive]}
+                            onPress={() => setSelectedMuscle(selectedMuscle === m ? null : m)}>
+                            <Text style={[s.chipText, { color: c.textSecondary }, selectedMuscle === m && s.chipTextActive]}>{MUSCLE_GROUP_LABELS[m]}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
 
-            {/* Filter: Equipment */}
             <View style={s.filterSection}>
-                <Text style={s.filterLabel}>EQUIPMENT</Text>
+                <Text style={[s.filterLabel, { color: c.textTertiary }]}>EQUIPMENT</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
                     {ALL_EQUIPMENT.map((eq) => (
-                        <TouchableOpacity
-                            key={eq}
-                            style={[s.chip, selectedEquipment === eq && s.chipActive]}
-                            onPress={() => setSelectedEquipment(selectedEquipment === eq ? null : eq)}
-                        >
-                            <Text style={[s.chipText, selectedEquipment === eq && s.chipTextActive]}>
-                                {EQUIPMENT_LABELS[eq]}
-                            </Text>
+                        <TouchableOpacity key={eq} style={[s.chip, { backgroundColor: c.card, borderColor: c.borderDark }, selectedEquipment === eq && s.chipActive]}
+                            onPress={() => setSelectedEquipment(selectedEquipment === eq ? null : eq)}>
+                            <Text style={[s.chipText, { color: c.textSecondary }, selectedEquipment === eq && s.chipTextActive]}>{EQUIPMENT_LABELS[eq]}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
 
-            {/* Filter: Category */}
             <View style={s.filterSection}>
-                <Text style={s.filterLabel}>CATEGORY</Text>
+                <Text style={[s.filterLabel, { color: c.textTertiary }]}>CATEGORY</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
                     {ALL_CATEGORIES.map((cat) => (
-                        <TouchableOpacity
-                            key={cat}
-                            style={[s.chip, selectedCategory === cat && s.chipActive]}
-                            onPress={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-                        >
-                            <Text style={[s.chipText, selectedCategory === cat && s.chipTextActive]}>
-                                {CATEGORY_LABELS[cat]}
-                            </Text>
+                        <TouchableOpacity key={cat} style={[s.chip, { backgroundColor: c.card, borderColor: c.borderDark }, selectedCategory === cat && s.chipActive]}
+                            onPress={() => setSelectedCategory(selectedCategory === cat ? null : cat)}>
+                            <Text style={[s.chipText, { color: c.textSecondary }, selectedCategory === cat && s.chipTextActive]}>{CATEGORY_LABELS[cat]}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
 
-            {/* Active filters summary */}
             {hasFilters && (
                 <View style={s.filterSummary}>
-                    <Text style={s.filterSummaryText}>{filtered.length} exercises found</Text>
+                    <Text style={[s.filterSummaryText, { color: c.textSecondary }]}>{filtered.length} exercises found</Text>
                     <TouchableOpacity onPress={clearFilters}>
                         <Text style={s.clearText}>Clear All</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
-            {/* Exercise List */}
             <ScrollView style={s.list} contentContainerStyle={s.listContent} showsVerticalScrollIndicator={false}>
                 {filtered.map((ex) => {
                     const isSelected = selectedIds.includes(ex.id);
                     return (
-                        <TouchableOpacity
-                            key={ex.id}
-                            style={[s.exRow, isSelected && s.exRowSelected]}
-                            activeOpacity={0.7}
-                            onPress={() => toggleExercise(ex.id)}
-                        >
-                            <View style={[s.checkbox, isSelected && s.checkboxActive]}>
-                                {isSelected && <MaterialIcons name="check" size={16} color={Colors.dark.background} />}
+                        <TouchableOpacity key={ex.id} style={[s.exRow, isSelected && s.exRowSelected]} activeOpacity={0.7} onPress={() => toggleExercise(ex.id)}>
+                            <View style={[s.checkbox, { borderColor: c.borderDark }, isSelected && s.checkboxActive]}>
+                                {isSelected && <MaterialIcons name="check" size={16} color="#000" />}
                             </View>
                             <View style={s.exInfo}>
-                                <Text style={s.exName}>{ex.name}</Text>
-                                <Text style={s.exMeta}>
+                                <Text style={[s.exName, { color: c.text }]}>{ex.name}</Text>
+                                <Text style={[s.exMeta, { color: c.textSecondary }]}>
                                     {MUSCLE_GROUP_LABELS[ex.muscleGroup]} • {EQUIPMENT_LABELS[ex.equipment]} • {CATEGORY_LABELS[ex.category]}
                                 </Text>
                             </View>
@@ -183,20 +149,17 @@ export default function AddExercisesScreen() {
                 })}
                 {filtered.length === 0 && (
                     <View style={s.empty}>
-                        <MaterialIcons name="search-off" size={40} color={Colors.light.textTertiary} />
-                        <Text style={s.emptyText}>No exercises match your filters</Text>
+                        <MaterialIcons name="search-off" size={40} color={c.textTertiary} />
+                        <Text style={[s.emptyText, { color: c.textSecondary }]}>No exercises match your filters</Text>
                     </View>
                 )}
             </ScrollView>
 
-            {/* Bottom Add Button */}
             {selectedIds.length > 0 && (
-                <View style={s.bottomBar}>
+                <View style={[s.bottomBar, { backgroundColor: c.background, borderTopColor: c.border }]}>
                     <TouchableOpacity style={s.addBtn} activeOpacity={0.8} onPress={handleAdd}>
-                        <MaterialIcons name="add" size={22} color={Colors.dark.background} />
-                        <Text style={s.addBtnText}>
-                            Add {selectedIds.length} Exercise{selectedIds.length > 1 ? 's' : ''}
-                        </Text>
+                        <MaterialIcons name="add" size={22} color="#000" />
+                        <Text style={s.addBtnText}>Add {selectedIds.length} Exercise{selectedIds.length > 1 ? 's' : ''}</Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -216,32 +179,23 @@ const s = StyleSheet.create({
     searchWrap: { paddingHorizontal: Spacing.base, paddingBottom: Spacing.sm },
     searchBox: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.lg,
-        paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.base, paddingVertical: Spacing.md, borderWidth: 1,
     },
-    searchInput: { flex: 1, fontFamily: 'Lexend_400Regular', fontSize: FontSize.sm, color: Colors.light.text },
+    searchInput: { flex: 1, fontFamily: 'Lexend_400Regular', fontSize: FontSize.sm },
 
     filterSection: { paddingHorizontal: Spacing.base, paddingTop: Spacing.sm, paddingBottom: 4 },
-    filterLabel: {
-        fontSize: 10, fontFamily: 'Lexend_600SemiBold', color: Colors.light.textTertiary,
-        textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: Spacing.sm,
-    },
+    filterLabel: { fontSize: 10, fontFamily: 'Lexend_600SemiBold', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: Spacing.sm },
     chipRow: { gap: Spacing.sm, paddingRight: Spacing.base },
-    chip: {
-        paddingHorizontal: Spacing.md, paddingVertical: 6,
-        borderRadius: BorderRadius.full, backgroundColor: Colors.light.card,
-        borderWidth: 1, borderColor: Colors.light.borderDark,
-    },
+    chip: { paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: BorderRadius.full, borderWidth: 1 },
     chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-    chipText: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary },
-    chipTextActive: { color: Colors.dark.background, fontFamily: 'Lexend_700Bold' },
+    chipText: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium' },
+    chipTextActive: { color: '#000', fontFamily: 'Lexend_700Bold' },
 
     filterSummary: {
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
         paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm,
     },
-    filterSummaryText: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary },
+    filterSummaryText: { fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium' },
     clearText: { fontSize: FontSize.xs, fontFamily: 'Lexend_700Bold', color: Colors.primary },
 
     list: { flex: 1 },
@@ -253,29 +207,27 @@ const s = StyleSheet.create({
     },
     exRowSelected: { backgroundColor: Colors.primaryLight },
     checkbox: {
-        width: 26, height: 26, borderRadius: 7,
-        borderWidth: 2, borderColor: Colors.light.borderDark,
+        width: 26, height: 26, borderRadius: 7, borderWidth: 2,
         alignItems: 'center', justifyContent: 'center',
     },
     checkboxActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
     exInfo: { flex: 1 },
-    exName: { fontSize: FontSize.base, fontFamily: 'Lexend_500Medium', color: Colors.light.text },
-    exMeta: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary, marginTop: 2 },
+    exName: { fontSize: FontSize.base, fontFamily: 'Lexend_500Medium' },
+    exMeta: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', marginTop: 2 },
 
     empty: { alignItems: 'center', paddingTop: 60, gap: Spacing.base },
-    emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.md, color: Colors.light.textSecondary },
+    emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.md },
 
     bottomBar: {
         position: 'absolute', bottom: 0, left: 0, right: 0,
         paddingHorizontal: Spacing.base, paddingTop: Spacing.base,
         paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-        backgroundColor: Colors.light.background,
-        borderTopWidth: 1, borderTopColor: 'rgba(19,236,106,0.1)',
+        borderTopWidth: 1,
     },
     addBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
         paddingVertical: Spacing.base, borderRadius: BorderRadius.lg, backgroundColor: Colors.primary,
         shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
     },
-    addBtnText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.dark.background },
+    addBtnText: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: '#000' },
 });

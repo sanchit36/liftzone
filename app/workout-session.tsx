@@ -21,7 +21,6 @@ export default function WorkoutSessionScreen() {
     const [restRemaining, setRestRemaining] = useState(0);
     const startTimeRef = useRef(activeWorkout?.startedAt || Date.now());
 
-    // Quick-start if no active workout
     useEffect(() => {
         if (!activeWorkout) {
             const { startWorkout } = useWorkoutStore.getState();
@@ -29,7 +28,6 @@ export default function WorkoutSessionScreen() {
         }
     }, []);
 
-    // Elapsed timer
     useEffect(() => {
         const timer = setInterval(() => {
             setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
@@ -37,7 +35,6 @@ export default function WorkoutSessionScreen() {
         return () => clearInterval(timer);
     }, []);
 
-    // Rest timer
     useEffect(() => {
         if (!activeWorkout?.restTimerEnd) { setRestRemaining(0); return; }
         const timer = setInterval(() => {
@@ -72,29 +69,22 @@ export default function WorkoutSessionScreen() {
 
     const handleCompleteSet = (weId: string, setId: string, exerciseId: string) => {
         completeSet(weId, setId);
-        // Look up per-exercise rest timer from routine template
         const routineId = activeWorkout?.routineId;
         if (routineId) {
             const routine = useRoutineStore.getState().getRoutineById(routineId);
             const template = routine?.exerciseTemplates?.find((t) => t.exerciseId === exerciseId);
-            if (template && template.restTimer > 0) {
-                startRestTimer(template.restTimer);
-                return;
-            }
+            if (template && template.restTimer > 0) { startRestTimer(template.restTimer); return; }
         }
-        // Fallback: use global setting
         if (restTimerEnabled) startRestTimer(90);
     };
 
-    const handleAddExercise = () => {
-        router.push('/add-exercises');
-    };
+    const handleAddExercise = () => { router.push('/add-exercises'); };
 
     if (!activeWorkout) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>Starting workout...</Text>
+                    <Text style={[styles.emptyText, { color: c.textSecondary }]}>Starting workout...</Text>
                 </View>
             </SafeAreaView>
         );
@@ -105,14 +95,14 @@ export default function WorkoutSessionScreen() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { borderBottomColor: c.border }]}>
                 <TouchableOpacity style={styles.closeBtn} onPress={handleCancel}>
                     <MaterialIcons name="close" size={24} color={c.text} />
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
-                    <Text style={styles.headerLabel}>ACTIVE SESSION</Text>
+                    <Text style={[styles.headerLabel, { color: c.textSecondary }]}>ACTIVE SESSION</Text>
                     <View style={styles.timerRow}>
-                        <Text style={styles.timerText}>{formatTime(elapsed)}</Text>
+                        <Text style={[styles.timerText, { color: c.text }]}>{formatTime(elapsed)}</Text>
                         <View style={styles.liveDot} />
                     </View>
                 </View>
@@ -128,67 +118,68 @@ export default function WorkoutSessionScreen() {
 
                     return (
                         <View key={we.id} style={styles.exerciseBlock}>
-                            {/* Exercise Header */}
                             <View style={styles.exerciseHeader}>
                                 <View>
-                                    <Text style={styles.exerciseName}>{exercise.name}</Text>
-                                    <Text style={styles.exerciseMuscle}>{exercise.muscleGroup}</Text>
+                                    <Text style={[styles.exerciseName, { color: c.text }]}>{exercise.name}</Text>
+                                    <Text style={[styles.exerciseMuscle, { color: c.textSecondary }]}>{exercise.muscleGroup}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.moreBtn}>
                                     <MaterialIcons name="more-horiz" size={24} color={Colors.primary} />
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Set Headers */}
                             <View style={styles.setHeaderRow}>
-                                <Text style={[styles.setHeaderText, { width: 40, textAlign: 'center' }]}>SET</Text>
-                                <Text style={[styles.setHeaderText, { flex: 1 }]}>PREVIOUS</Text>
-                                <Text style={[styles.setHeaderText, { width: 60, textAlign: 'center' }]}>{unitLabel}</Text>
-                                <Text style={[styles.setHeaderText, { width: 60, textAlign: 'center' }]}>REPS</Text>
+                                <Text style={[styles.setHeaderText, { width: 40, textAlign: 'center', color: c.textTertiary }]}>SET</Text>
+                                <Text style={[styles.setHeaderText, { flex: 1, color: c.textTertiary }]}>PREVIOUS</Text>
+                                <Text style={[styles.setHeaderText, { width: 60, textAlign: 'center', color: c.textTertiary }]}>{unitLabel}</Text>
+                                <Text style={[styles.setHeaderText, { width: 60, textAlign: 'center', color: c.textTertiary }]}>REPS</Text>
                                 <View style={{ width: 36 }} />
                             </View>
 
-                            {/* Set Rows */}
                             {we.sets.map((s, si) => {
                                 const prevSets = useWorkoutStore.getState().getPreviousSets(we.exerciseId);
                                 const prev = prevSets?.[si];
 
                                 return (
-                                    <View key={s.id} style={[styles.setRow, s.completed && styles.setRowCompleted, !s.completed && si > 0 && !we.sets[si - 1]?.completed && styles.setRowDimmed]}>
-                                        <Text style={[styles.setNum, s.completed && styles.setNumCompleted]}>{si + 1}</Text>
-                                        <Text style={styles.prevText}>
+                                    <View key={s.id} style={[
+                                        styles.setRow,
+                                        { backgroundColor: c.card, borderColor: c.border },
+                                        s.completed && styles.setRowCompleted,
+                                        !s.completed && si > 0 && !we.sets[si - 1]?.completed && styles.setRowDimmed
+                                    ]}>
+                                        <Text style={[styles.setNum, { color: c.textTertiary }, s.completed && styles.setNumCompleted]}>{si + 1}</Text>
+                                        <Text style={[styles.prevText, { color: c.textSecondary }]}>
                                             {prev ? `${prev.weight} ${weightUnit} × ${prev.reps}` : '—'}
                                         </Text>
                                         <TextInput
-                                            style={styles.input}
+                                            style={[styles.input, { backgroundColor: c.background, color: c.text }]}
                                             keyboardType="numeric"
                                             placeholder={prev ? `${prev.weight}` : '0'}
-                                            placeholderTextColor={Colors.light.textTertiary}
+                                            placeholderTextColor={c.textTertiary}
                                             value={s.weight > 0 ? String(s.weight) : ''}
                                             onChangeText={(t) => updateSet(we.id, s.id, 'weight', parseFloat(t) || 0)}
                                         />
                                         <TextInput
-                                            style={styles.input}
+                                            style={[styles.input, { backgroundColor: c.background, color: c.text }]}
                                             keyboardType="numeric"
                                             placeholder={prev ? `${prev.reps}` : '0'}
-                                            placeholderTextColor={Colors.light.textTertiary}
+                                            placeholderTextColor={c.textTertiary}
                                             value={s.reps > 0 ? String(s.reps) : ''}
                                             onChangeText={(t) => updateSet(we.id, s.id, 'reps', parseInt(t) || 0)}
                                         />
                                         <TouchableOpacity
-                                            style={[styles.checkBtn, s.completed && styles.checkBtnCompleted]}
+                                            style={[styles.checkBtn, { backgroundColor: c.borderDark }, s.completed && styles.checkBtnCompleted]}
                                             onPress={() => handleCompleteSet(we.id, s.id, we.exerciseId)}
                                         >
-                                            <MaterialIcons name="check" size={20} color={s.completed ? Colors.light.text : Colors.light.textTertiary} />
+                                            <MaterialIcons name="check" size={20} color={s.completed ? '#000' : c.textTertiary} />
                                         </TouchableOpacity>
                                     </View>
                                 );
                             })}
 
-                            {/* Add Set */}
-                            <TouchableOpacity style={styles.addSetBtn} onPress={() => addSet(we.id)}>
-                                <MaterialIcons name="add" size={18} color={Colors.light.text} />
-                                <Text style={styles.addSetText}>Add Set</Text>
+                            <TouchableOpacity style={[styles.addSetBtn, { backgroundColor: c.borderDark }]} onPress={() => addSet(we.id)}>
+                                <MaterialIcons name="add" size={18} color={c.text} />
+                                <Text style={[styles.addSetText, { color: c.text }]}>Add Set</Text>
                             </TouchableOpacity>
                         </View>
                     );
@@ -196,8 +187,8 @@ export default function WorkoutSessionScreen() {
 
                 {activeWorkout.exercises.length === 0 && (
                     <View style={styles.noExercises}>
-                        <MaterialIcons name="fitness-center" size={48} color={Colors.light.textTertiary} />
-                        <Text style={styles.noExercisesText}>No exercises yet. Add one below!</Text>
+                        <MaterialIcons name="fitness-center" size={48} color={c.textTertiary} />
+                        <Text style={[styles.noExercisesText, { color: c.textSecondary }]}>No exercises yet. Add one below!</Text>
                     </View>
                 )}
             </ScrollView>
@@ -215,7 +206,7 @@ export default function WorkoutSessionScreen() {
                                 <Text style={styles.restTimerAction}>+30s</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={clearRestTimer}>
-                                <Text style={styles.restTimerSkip}>Skip</Text>
+                                <Text style={[styles.restTimerSkip, { color: c.textTertiary }]}>Skip</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -223,13 +214,13 @@ export default function WorkoutSessionScreen() {
             )}
 
             {/* Bottom Actions */}
-            <View style={styles.bottomActions}>
+            <View style={[styles.bottomActions, { backgroundColor: c.background, borderTopColor: c.border }]}>
                 <TouchableOpacity style={styles.addExerciseBtn} onPress={handleAddExercise}>
                     <MaterialIcons name="add-circle" size={22} color={Colors.primary} />
                     <Text style={styles.addExerciseBtnText}>Add Exercise</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.finishWorkoutBtn} onPress={handleFinish}>
-                    <MaterialIcons name="done-all" size={22} color={Colors.dark.background} />
+                    <MaterialIcons name="done-all" size={22} color="#000" />
                     <Text style={styles.finishWorkoutBtnText}>Finish Workout</Text>
                 </TouchableOpacity>
             </View>
@@ -238,20 +229,20 @@ export default function WorkoutSessionScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
+    container: { flex: 1 },
     emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.base, color: Colors.light.textSecondary },
+    emptyText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.base },
 
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,
-        borderBottomWidth: 1, borderBottomColor: 'rgba(19,236,106,0.1)',
+        borderBottomWidth: 1,
     },
     closeBtn: { padding: Spacing.sm, borderRadius: BorderRadius.full },
     headerCenter: { alignItems: 'center' },
-    headerLabel: { fontSize: 10, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary, textTransform: 'uppercase', letterSpacing: 1.5 },
+    headerLabel: { fontSize: 10, fontFamily: 'Lexend_500Medium', textTransform: 'uppercase', letterSpacing: 1.5 },
     timerRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-    timerText: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', color: Colors.light.text, fontVariant: ['tabular-nums'] },
+    timerText: { fontSize: FontSize.xl, fontFamily: 'Lexend_700Bold', fontVariant: ['tabular-nums'] },
     liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary },
     finishBtn: { fontSize: FontSize.base, fontFamily: 'Lexend_700Bold', color: Colors.primary, paddingHorizontal: Spacing.sm },
 
@@ -260,30 +251,28 @@ const styles = StyleSheet.create({
 
     exerciseBlock: { paddingHorizontal: Spacing.base, paddingTop: Spacing.xl },
     exerciseHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.base },
-    exerciseName: { fontSize: FontSize.xxl, fontFamily: 'Lexend_700Bold', color: Colors.light.text },
-    exerciseMuscle: { fontSize: FontSize.sm, fontFamily: 'Lexend_400Regular', color: Colors.light.textSecondary, textTransform: 'capitalize', marginTop: 2 },
+    exerciseName: { fontSize: FontSize.xxl, fontFamily: 'Lexend_700Bold' },
+    exerciseMuscle: { fontSize: FontSize.sm, fontFamily: 'Lexend_400Regular', textTransform: 'capitalize', marginTop: 2 },
     moreBtn: { padding: Spacing.sm, backgroundColor: Colors.primaryLight, borderRadius: BorderRadius.sm },
 
     setHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, paddingHorizontal: 4 },
-    setHeaderText: { fontSize: 10, fontFamily: 'Lexend_700Bold', color: Colors.light.textTertiary, textTransform: 'uppercase', letterSpacing: 1.5 },
+    setHeaderText: { fontSize: 10, fontFamily: 'Lexend_700Bold', textTransform: 'uppercase', letterSpacing: 1.5 },
 
     setRow: {
         flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-        backgroundColor: Colors.light.card, borderRadius: BorderRadius.sm,
-        padding: 6, marginBottom: Spacing.sm,
-        borderWidth: 1, borderColor: Colors.light.border,
+        borderRadius: BorderRadius.sm, padding: 6, marginBottom: Spacing.sm, borderWidth: 1,
     },
     setRowCompleted: { backgroundColor: Colors.primaryLight, borderColor: Colors.primaryMedium },
     setRowDimmed: { opacity: 0.6 },
-    setNum: { width: 40, textAlign: 'center', fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: Colors.light.textTertiary },
+    setNum: { width: 40, textAlign: 'center', fontFamily: 'Lexend_700Bold', fontSize: FontSize.base },
     setNumCompleted: { color: Colors.primary },
-    prevText: { flex: 1, fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium', color: Colors.light.textSecondary },
+    prevText: { flex: 1, fontSize: FontSize.xs, fontFamily: 'Lexend_500Medium' },
     input: {
-        width: 60, backgroundColor: Colors.light.background, borderRadius: 6, textAlign: 'center',
-        fontFamily: 'Lexend_700Bold', fontSize: FontSize.sm, paddingVertical: 6, paddingHorizontal: 4, color: Colors.light.text,
+        width: 60, borderRadius: 6, textAlign: 'center',
+        fontFamily: 'Lexend_700Bold', fontSize: FontSize.sm, paddingVertical: 6, paddingHorizontal: 4,
     },
     checkBtn: {
-        width: 36, height: 36, borderRadius: 8, backgroundColor: Colors.light.borderDark,
+        width: 36, height: 36, borderRadius: 8,
         alignItems: 'center', justifyContent: 'center',
     },
     checkBtnCompleted: { backgroundColor: Colors.primary },
@@ -291,18 +280,15 @@ const styles = StyleSheet.create({
     addSetBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
         marginTop: Spacing.sm, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg,
-        backgroundColor: Colors.light.borderDark,
     },
-    addSetText: { fontFamily: 'Lexend_600SemiBold', fontSize: FontSize.sm, color: Colors.light.text },
+    addSetText: { fontFamily: 'Lexend_600SemiBold', fontSize: FontSize.sm },
 
     noExercises: { alignItems: 'center', paddingTop: 80, gap: Spacing.base },
-    noExercisesText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.md, color: Colors.light.textSecondary },
+    noExercisesText: { fontFamily: 'Lexend_500Medium', fontSize: FontSize.md },
 
-    restTimer: {
-        position: 'absolute', bottom: 100, left: '5%', right: '5%',
-    },
+    restTimer: { position: 'absolute', bottom: 100, left: '5%', right: '5%' },
     restTimerInner: {
-        backgroundColor: '#1e293b', borderRadius: BorderRadius.full,
+        backgroundColor: '#1a1a1a', borderRadius: BorderRadius.full,
         paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg,
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         borderWidth: 1, borderColor: 'rgba(19,236,106,0.3)',
@@ -313,12 +299,12 @@ const styles = StyleSheet.create({
     restTimerBold: { fontFamily: 'Lexend_700Bold', fontVariant: ['tabular-nums'] },
     restTimerRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.base },
     restTimerAction: { fontSize: FontSize.xs, fontFamily: 'Lexend_700Bold', color: Colors.primary, textTransform: 'uppercase', letterSpacing: 1 },
-    restTimerSkip: { fontSize: FontSize.xs, fontFamily: 'Lexend_700Bold', color: Colors.light.textTertiary, textTransform: 'uppercase', letterSpacing: 1 },
+    restTimerSkip: { fontSize: FontSize.xs, fontFamily: 'Lexend_700Bold', textTransform: 'uppercase', letterSpacing: 1 },
 
     bottomActions: {
         flexDirection: 'row', gap: Spacing.md,
         paddingHorizontal: Spacing.base, paddingTop: Spacing.base, paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-        backgroundColor: Colors.light.background, borderTopWidth: 1, borderTopColor: 'rgba(19,236,106,0.1)',
+        borderTopWidth: 1,
     },
     addExerciseBtn: {
         flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
@@ -330,5 +316,5 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.base, borderRadius: BorderRadius.lg, backgroundColor: Colors.primary,
         shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
     },
-    finishWorkoutBtnText: { fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: Colors.dark.background },
+    finishWorkoutBtnText: { fontFamily: 'Lexend_700Bold', fontSize: FontSize.base, color: '#000' },
 });
