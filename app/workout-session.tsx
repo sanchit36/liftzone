@@ -12,7 +12,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 
 export default function WorkoutSessionScreen() {
     const router = useRouter();
-    const { activeWorkout, finishWorkout, cancelWorkout, addExerciseToWorkout, addSet, removeSet, updateSet, completeSet, startRestTimer, clearRestTimer } = useWorkoutStore();
+    const { activeWorkout, finishWorkout, cancelWorkout, addSet, removeSet, removeExerciseFromWorkout, updateSet, completeSet, startRestTimer, clearRestTimer } = useWorkoutStore();
     const { getExerciseById } = useExerciseStore();
     const { weightUnit, restTimerEnabled } = useSettingsStore();
     const c = useThemeColors();
@@ -80,6 +80,21 @@ export default function WorkoutSessionScreen() {
 
     const handleAddExercise = () => { router.push('/add-exercises'); };
 
+    const handleRemoveExercise = (weId: string, exerciseName: string) => {
+        Alert.alert('Remove Exercise', `Remove "${exerciseName}" from this workout?`, [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Remove', style: 'destructive', onPress: () => removeExerciseFromWorkout(weId) },
+        ]);
+    };
+
+    const handleRemoveSet = (weId: string, setId: string, setsCount: number) => {
+        if (setsCount <= 1) {
+            Alert.alert('Cannot Remove', 'Each exercise must have at least one set.');
+            return;
+        }
+        removeSet(weId, setId);
+    };
+
     if (!activeWorkout) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: c.background }]} edges={['top']}>
@@ -119,12 +134,12 @@ export default function WorkoutSessionScreen() {
                     return (
                         <View key={we.id} style={styles.exerciseBlock}>
                             <View style={styles.exerciseHeader}>
-                                <View>
+                                <View style={{ flex: 1 }}>
                                     <Text style={[styles.exerciseName, { color: c.text }]}>{exercise.name}</Text>
                                     <Text style={[styles.exerciseMuscle, { color: c.textSecondary }]}>{exercise.muscleGroup}</Text>
                                 </View>
-                                <TouchableOpacity style={styles.moreBtn}>
-                                    <MaterialIcons name="more-horiz" size={24} color={Colors.primary} />
+                                <TouchableOpacity style={styles.removeExBtn} onPress={() => handleRemoveExercise(we.id, exercise.name)}>
+                                    <MaterialIcons name="delete-outline" size={20} color="#e74c3c" />
                                 </TouchableOpacity>
                             </View>
 
@@ -172,6 +187,13 @@ export default function WorkoutSessionScreen() {
                                             onPress={() => handleCompleteSet(we.id, s.id, we.exerciseId)}
                                         >
                                             <MaterialIcons name="check" size={20} color={s.completed ? '#000' : c.textTertiary} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.removeSetBtn}
+                                            onPress={() => handleRemoveSet(we.id, s.id, we.sets.length)}
+                                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                        >
+                                            <MaterialIcons name="remove-circle-outline" size={18} color={c.textTertiary} />
                                         </TouchableOpacity>
                                     </View>
                                 );
@@ -253,7 +275,8 @@ const styles = StyleSheet.create({
     exerciseHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.base },
     exerciseName: { fontSize: FontSize.xxl, fontFamily: 'Lexend_700Bold' },
     exerciseMuscle: { fontSize: FontSize.sm, fontFamily: 'Lexend_400Regular', textTransform: 'capitalize', marginTop: 2 },
-    moreBtn: { padding: Spacing.sm, backgroundColor: Colors.primaryLight, borderRadius: BorderRadius.sm },
+    removeExBtn: { padding: Spacing.sm, backgroundColor: 'rgba(231,76,60,0.1)', borderRadius: BorderRadius.sm },
+    removeSetBtn: { paddingLeft: 4 },
 
     setHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, paddingHorizontal: 4 },
     setHeaderText: { fontSize: 10, fontFamily: 'Lexend_700Bold', textTransform: 'uppercase', letterSpacing: 1.5 },
