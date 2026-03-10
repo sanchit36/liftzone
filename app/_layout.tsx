@@ -11,6 +11,7 @@ import { useRoutineStore } from '../store/routineStore';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useMeasureStore } from '../store/measureStore';
 import { useSettingsStore } from '../store/settingsStore';
+import ActiveWorkoutBar from '../components/ActiveWorkoutBar';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -80,6 +81,7 @@ export default function RootLayout() {
                 <Stack.Screen name="add-exercises" />
                 <Stack.Screen name="edit-routine" />
             </Stack>
+            <ActiveWorkoutBar />
         </>
     );
 }
