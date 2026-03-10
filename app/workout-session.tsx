@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, TextInputProps } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,56 @@ import { useExerciseStore } from '../store/exerciseStore';
 import { useRoutineStore } from '../store/routineStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useThemeColors } from '../hooks/useThemeColors';
+
+/** A text input that handles decimals properly by using local string state and committing on blur. */
+function NumericInput({ numericValue, onValueChange, isDecimal, style, ...rest }: {
+    numericValue: number;
+    onValueChange: (val: number) => void;
+    isDecimal?: boolean;
+} & Omit<TextInputProps, 'value' | 'onChangeText' | 'onBlur' | 'keyboardType'>) {
+    const [text, setText] = useState(numericValue > 0 ? String(numericValue) : '');
+    const isFocused = useRef(false);
+
+    // Sync from store when not focused (e.g. external updates)
+    useEffect(() => {
+        if (!isFocused.current) {
+            setText(numericValue > 0 ? String(numericValue) : '');
+        }
+    }, [numericValue]);
+
+    const handleChange = useCallback((t: string) => {
+        // Allow digits, and a single dot for decimal fields
+        if (isDecimal) {
+            const cleaned = t.replace(/[^0-9.]/g, '');
+            const parts = cleaned.split('.');
+            if (parts.length > 2) return; // reject multiple dots
+            if (parts[1] && parts[1].length > 1) return; // max 1 decimal place
+            setText(cleaned);
+        } else {
+            setText(t.replace(/[^0-9]/g, ''));
+        }
+    }, [isDecimal]);
+
+    const handleBlur = useCallback(() => {
+        isFocused.current = false;
+        const parsed = isDecimal ? parseFloat(text) : parseInt(text, 10);
+        const val = isNaN(parsed) ? 0 : parsed;
+        onValueChange(val);
+        setText(val > 0 ? String(val) : '');
+    }, [text, isDecimal, onValueChange]);
+
+    return (
+        <TextInput
+            {...rest}
+            style={style}
+            keyboardType={isDecimal ? 'decimal-pad' : 'number-pad'}
+            value={text}
+            onChangeText={handleChange}
+            onFocus={() => { isFocused.current = true; }}
+            onBlur={handleBlur}
+        />
+    );
+}
 
 export default function WorkoutSessionScreen() {
     const router = useRouter();
@@ -166,21 +216,20 @@ export default function WorkoutSessionScreen() {
                                         <Text style={[styles.prevText, { color: c.textSecondary }]}>
                                             {prev ? `${prev.weight} ${weightUnit} × ${prev.reps}` : '—'}
                                         </Text>
-                                        <TextInput
+                                        <NumericInput
                                             style={[styles.input, { backgroundColor: c.background, color: c.text }]}
-                                            keyboardType="numeric"
+                                            isDecimal
                                             placeholder={prev ? `${prev.weight}` : '0'}
                                             placeholderTextColor={c.textTertiary}
-                                            value={s.weight > 0 ? String(s.weight) : ''}
-                                            onChangeText={(t) => updateSet(we.id, s.id, 'weight', parseFloat(t) || 0)}
+                                            numericValue={s.weight}
+                                            onValueChange={(v) => updateSet(we.id, s.id, 'weight', v)}
                                         />
-                                        <TextInput
+                                        <NumericInput
                                             style={[styles.input, { backgroundColor: c.background, color: c.text }]}
-                                            keyboardType="numeric"
                                             placeholder={prev ? `${prev.reps}` : '0'}
                                             placeholderTextColor={c.textTertiary}
-                                            value={s.reps > 0 ? String(s.reps) : ''}
-                                            onChangeText={(t) => updateSet(we.id, s.id, 'reps', parseInt(t) || 0)}
+                                            numericValue={s.reps}
+                                            onValueChange={(v) => updateSet(we.id, s.id, 'reps', v)}
                                         />
                                         <TouchableOpacity
                                             style={[styles.checkBtn, { backgroundColor: c.borderDark }, s.completed && styles.checkBtnCompleted]}
