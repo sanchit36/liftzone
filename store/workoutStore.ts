@@ -75,6 +75,7 @@ interface WorkoutState {
 
     startRestTimer: (duration: number) => void;
     clearRestTimer: () => void;
+    removeWorkoutFromHistory: (id: string) => void;
 
     getPreviousSets: (exerciseId: string) => SetData[] | undefined;
     calculateStreak: () => number;
@@ -365,5 +366,14 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
             });
         });
         return { workouts: history.length, sets, reps, volume };
+    },
+    
+    removeWorkoutFromHistory: (workoutId: string) => {
+        // Remove from in-memory history
+        const newHistory = get().workoutHistory.filter(w => w.id !== workoutId);
+        set({ workoutHistory: newHistory, streakDays: calculateStreakFromHistory(newHistory) });
+
+        // Remove from database
+        dbOps.deleteWorkout(workoutId);
     },
 }));

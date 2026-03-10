@@ -85,27 +85,35 @@ export default function HomeScreen() {
                         <Text style={[styles.sectionTitle, { color: c.text }]}>Your Routines</Text>
                     </View>
                     <View style={styles.routineList}>
-                        {routines.map((item) => (
-                            <View key={item.id} style={[styles.routineCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                                <TouchableOpacity style={styles.routineMain} activeOpacity={0.7} onPress={() => handleStartFromRoutine(item.id)}>
-                                    <View style={styles.routineIconContainer}>
-                                        <MaterialIcons name={getRoutineIcon(item.icon)} size={22} color={Colors.primary} />
-                                    </View>
-                                    <View style={styles.routineTextContainer}>
-                                        <Text style={[styles.routineName, { color: c.text }]}>{item.name}</Text>
-                                        <Text style={[styles.routineCount, { color: c.textSecondary }]}>{item.exerciseIds.length} Exercises</Text>
-                                    </View>
-                                </TouchableOpacity>
-                                <View style={styles.routineActions}>
-                                    <TouchableOpacity style={styles.routineActionBtn} onPress={() => router.push(`/edit-routine?id=${item.id}`)}>
-                                        <MaterialIcons name="edit" size={18} color={c.textSecondary} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.routineActionBtn} onPress={() => handleDeleteRoutine(item.id, item.name)}>
-                                        <MaterialIcons name="delete-outline" size={18} color="#e74c3c" />
-                                    </TouchableOpacity>
-                                </View>
+                        {routines.length === 0 ? (
+                            <View style={[styles.emptyCard, { backgroundColor: c.card, borderColor: c.border }]}>
+                                <MaterialIcons name="list-alt" size={32} color={c.textTertiary} style={{ marginBottom: 8 }} />
+                                <Text style={[styles.emptyCardTitle, { color: c.textSecondary }]}>No Routines Yet</Text>
+                                <Text style={[styles.emptyCardSubtitle, { color: c.textTertiary }]}>Create a routine above to get started quickly!</Text>
                             </View>
-                        ))}
+                        ) : (
+                            routines.map((item) => (
+                                <View key={item.id} style={[styles.routineCard, { backgroundColor: c.card, borderColor: c.border }]}>
+                                    <TouchableOpacity style={styles.routineMain} activeOpacity={0.7} onPress={() => handleStartFromRoutine(item.id)}>
+                                        <View style={styles.routineIconContainer}>
+                                            <MaterialIcons name={getRoutineIcon(item.icon)} size={22} color={Colors.primary} />
+                                        </View>
+                                        <View style={styles.routineTextContainer}>
+                                            <Text style={[styles.routineName, { color: c.text }]}>{item.name}</Text>
+                                            <Text style={[styles.routineCount, { color: c.textSecondary }]}>{item.exerciseIds.length} Exercises</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                    <View style={styles.routineActions}>
+                                        <TouchableOpacity style={styles.routineActionBtn} onPress={() => router.push(`/edit-routine?id=${item.id}`)}>
+                                            <MaterialIcons name="edit" size={18} color={c.textSecondary} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.routineActionBtn} onPress={() => handleDeleteRoutine(item.id, item.name)}>
+                                            <MaterialIcons name="delete-outline" size={18} color="#e74c3c" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))
+                        )}
                     </View>
                 </View>
             </ScrollView>
@@ -165,4 +173,8 @@ const styles = StyleSheet.create({
     routineCount: { fontFamily: 'Lexend_400Regular', fontSize: FontSize.xs, marginTop: 4 },
     routineActions: { flexDirection: 'row', alignItems: 'center', gap: 2 },
     routineActionBtn: { padding: Spacing.sm, borderRadius: BorderRadius.sm },
+    
+    emptyCard: { alignItems: 'center', padding: Spacing.xl, borderRadius: BorderRadius.lg, borderWidth: 1, borderStyle: 'dashed' },
+    emptyCardTitle: { fontSize: FontSize.base, fontFamily: 'Lexend_600SemiBold', marginBottom: 4 },
+    emptyCardSubtitle: { fontSize: FontSize.xs, fontFamily: 'Lexend_400Regular', textAlign: 'center' },
 });

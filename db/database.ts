@@ -265,6 +265,12 @@ export function insertWorkoutSet(ws: WorkoutSetRow): void {
     );
 }
 
+export function deleteWorkout(id: string): void {
+    getDatabase().runSync('DELETE FROM workout_sets WHERE workout_exercise_id IN (SELECT id FROM workout_exercises WHERE workout_id = ?)', id);
+    getDatabase().runSync('DELETE FROM workout_exercises WHERE workout_id = ?', id);
+    getDatabase().runSync('DELETE FROM workouts WHERE id = ?', id);
+}
+
 export function getPreviousSetsForExercise(exerciseId: string): WorkoutSetRow[] | null {
     // Find the most recent workout that included this exercise
     const row = getDatabase().getFirstSync<{ id: string }>(
