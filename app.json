@@ -1,26 +1,28 @@
 {
   "expo": {
-    "name": "Liftzeno",
-    "slug": "liftzeno",
+    "name": "LiftZone",
+    "slug": "liftzone",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "scheme": "liftzeno",
+    "userInterfaceStyle": "automatic",
+    "scheme": "liftzone",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f6f8f7"
+      "backgroundColor": "#0f0f0f"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.liftzone.app"
     },
     "android": {
+      "package": "com.liftzone.app",
       "adaptiveIcon": {
-        "backgroundColor": "#f6f8f7",
+        "backgroundColor": "#0f0f0f",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/android-icon-foreground.png"
       }
     },
     "web": {
@@ -31,6 +33,12 @@
       "expo-router",
       "expo-font",
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dd0bf5bb-c0d9-4d29-bc50-a46c80df3170"
+      },
+      "router": {}
+    }
   }
 }
